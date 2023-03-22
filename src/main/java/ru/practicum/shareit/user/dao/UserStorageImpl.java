@@ -65,9 +65,7 @@ public class UserStorageImpl implements UserStorage {
     }
 
     private void validate(User user, Long id) {
-        List<User> notUniqueUsers = users
-                .values()
-                .stream()
+        List<User> notUniqueUsers = users.values().stream()
                 .filter(user1 -> user1.getEmail().equals(user.getEmail()))
                 .filter(user1 -> !user1.getId().equals(id))
                 .collect(Collectors.toList());

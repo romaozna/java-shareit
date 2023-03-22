@@ -37,6 +37,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getAll() {
-        return userStorage.getAll().stream().map(userMapper::toUserDto).collect(Collectors.toList());
+        return userStorage.getAll().stream()
+                .map(userMapper::toUserDto)
+                .collect(Collectors.toList());
     }
 }

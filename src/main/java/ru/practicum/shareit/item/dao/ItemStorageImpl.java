@@ -68,18 +68,15 @@ public class ItemStorageImpl implements ItemStorage {
                 .getDescription()
                 .toLowerCase()
                 .contains(request.toLowerCase());
-        return items
-                .values()
-                .stream()
+        return items.values().stream()
                 .filter(Item::getAvailable)
-                .filter(item -> namePredicate.test(item) || descriptionPredicate.test(item)).collect(Collectors.toList());
+                .filter(item -> namePredicate.test(item) || descriptionPredicate.test(item))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<Item> getUserItems(Long userId) {
-        return items
-                .values()
-                .stream()
+        return items.values().stream()
                 .filter(item -> item.getOwner().getId().equals(userId))
                 .collect(Collectors.toList());
     }
