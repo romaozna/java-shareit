@@ -100,29 +100,22 @@ public class BookingServiceImpl implements BookingService {
         switch (state) {
 
             case CURRENT:
-                return bookingStorage.getCurrentBookingsByBooker(userId, now).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getCurrentBookingsByBooker(userId, now));
+
             case PAST:
-                return bookingStorage.getPastBookingsByBooker(userId, now).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getPastBookingsByBooker(userId, now));
+
             case FUTURE:
-                return bookingStorage.getFutureBookingsByBooker(userId, now).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getFutureBookingsByBooker(userId, now));
+
             case WAITING:
-                return bookingStorage.getWaitingBookingsByBooker(userId, now).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getWaitingBookingsByBooker(userId, now));
+
             case REJECTED:
-                return bookingStorage.getRejectedBookingsByBooker(userId).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getRejectedBookingsByBooker(userId));
+
             default:
-                return bookingStorage.getBookingsByBookerIdOrderByStartDesc(userId).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getBookingsByBookerIdOrderByStartDesc(userId));
         }
     }
 
@@ -134,29 +127,22 @@ public class BookingServiceImpl implements BookingService {
         switch (state) {
 
             case CURRENT:
-                return bookingStorage.getCurrentBookingsByOwner(userId, now).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getCurrentBookingsByOwner(userId, now));
+
             case PAST:
-                return bookingStorage.getPastBookingsByOwner(userId, now).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getPastBookingsByOwner(userId, now));
+
             case FUTURE:
-                return bookingStorage.getFutureBookingsByOwner(userId, now).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getFutureBookingsByOwner(userId, now));
+
             case WAITING:
-                return bookingStorage.getWaitingBookingsByOwner(userId, now).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getWaitingBookingsByOwner(userId, now));
+
             case REJECTED:
-                return bookingStorage.getRejectedBookingsByOwner(userId).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getRejectedBookingsByOwner(userId));
+
             default:
-                return bookingStorage.getAllBookingsByOwner(userId).stream()
-                        .map(BookingMapper::toBookingOutDto)
-                        .collect(Collectors.toList());
+                return mapToDto(bookingStorage.getAllBookingsByOwner(userId));
         }
     }
 
@@ -173,5 +159,11 @@ public class BookingServiceImpl implements BookingService {
     private Item validateItemByIdOrException(Long itemId) {
         return itemStorage.findById(itemId).orElseThrow(() ->
                 new NotFoundException("Item id=" + itemId + " not found!"));
+    }
+
+    private List<BookingOutDto> mapToDto(List<Booking> bookings) {
+        return bookings.stream()
+                .map(BookingMapper::toBookingOutDto)
+                .collect(Collectors.toList());
     }
 }

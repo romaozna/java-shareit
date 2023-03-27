@@ -15,22 +15,26 @@ import java.util.ArrayList;
 public class BookingMapper {
 
     public static BookingOutDto toBookingOutDto(Booking booking) {
-        ItemDto itemDto = new ItemDto(booking.getItem().getId(),
-                booking.getItem().getName(),
-                booking.getItem().getDescription(),
-                booking.getItem().getAvailable(),
-                null,
-                null,
-                new ArrayList<>());
+        ItemDto itemDto = ItemDto.builder()
+                .id(booking.getItem().getId())
+                .name(booking.getItem().getName())
+                .description(booking.getItem().getDescription())
+                .available(booking.getItem().getAvailable())
+                .comments(new ArrayList<>())
+                .build();
+
         UserDto userDto = new UserDto(booking.getBooker().getId(),
                 booking.getBooker().getName(),
                 booking.getBooker().getEmail());
-        return new BookingOutDto(booking.getId(),
-                booking.getStart(),
-                booking.getEnd(),
-                booking.getStatus(),
-                userDto,
-                itemDto);
+
+        return BookingOutDto.builder()
+                .id(booking.getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .status(booking.getStatus())
+                .booker(userDto)
+                .item(itemDto)
+                .build();
     }
 
     public static BookingInfoDto toBookingInfoDto(Booking booking) {

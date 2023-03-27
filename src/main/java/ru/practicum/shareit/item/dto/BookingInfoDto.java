@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 public class BookingInfoDto {
-    Long id;
-    Long bookerId;
+    private Long id;
+    private Long bookerId;
     @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss")
-    LocalDateTime start;
+    private LocalDateTime start;
     @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss")
-    LocalDateTime end;
+    private LocalDateTime end;
 }

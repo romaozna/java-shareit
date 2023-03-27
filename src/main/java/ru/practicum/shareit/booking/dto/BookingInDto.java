@@ -14,11 +14,11 @@ import java.time.LocalDateTime;
 @ToString
 public class BookingInDto {
     @NotNull(groups = {Create.class})
-    Long itemId;
+    private Long itemId;
     @NotNull(groups = {Create.class})
     @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss")
-    LocalDateTime start;
+    private LocalDateTime start;
     @NotNull(groups = {Create.class})
     @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss")
-    LocalDateTime end;
+    private LocalDateTime end;
 }

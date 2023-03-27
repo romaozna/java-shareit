@@ -13,13 +13,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Builder
 public class BookingOutDto {
-    Long id;
+    private Long id;
     @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss")
-    LocalDateTime start;
+    private LocalDateTime start;
     @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss")
-    LocalDateTime end;
-    Status status;
-    UserDto booker;
-    ItemDto item;
+    private LocalDateTime end;
+    private Status status;
+    private UserDto booker;
+    private ItemDto item;
 }

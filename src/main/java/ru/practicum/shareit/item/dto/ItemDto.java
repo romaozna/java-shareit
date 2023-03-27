@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Builder
 public class ItemDto {
     private Long id;
     @NotBlank(groups = {Create.class})
@@ -20,7 +21,7 @@ public class ItemDto {
     private String description;
     @NotNull(groups = {Create.class})
     private Boolean available;
-    BookingInfoDto lastBooking;
-    BookingInfoDto nextBooking;
-    List<CommentDto> comments;
+    private BookingInfoDto lastBooking;
+    private BookingInfoDto nextBooking;
+    private List<CommentDto> comments;
 }

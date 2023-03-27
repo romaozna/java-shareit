@@ -13,10 +13,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 public class CommentDto {
-        Long id;
+        private Long id;
         @NotBlank(groups = {Create.class})
-        String text;
-        String authorName;
+        private String text;
+        private String authorName;
         @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss")
-        LocalDateTime created;
+        private LocalDateTime created;
 }
