@@ -6,6 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.Create;
 import ru.practicum.shareit.Update;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -20,8 +21,9 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping("{id}")
-    public ItemDto getById(@PathVariable Long id) {
-        return itemService.getById(id);
+    public ItemDto getById(@RequestHeader(userIdFromHeader) Long userId,
+                           @PathVariable Long id) {
+        return itemService.getById(userId, id);
     }
 
     @GetMapping
@@ -42,8 +44,17 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestParam(name = "text") String request) {
-        return request.isBlank() ? Collections.emptyList() : itemService.searchItem(request);
+    public List<ItemDto> searchItem(@RequestHeader(userIdFromHeader) Long userId,
+                                    @RequestParam(name = "text") String request) {
+        return request.isBlank() ? Collections.emptyList() : itemService.searchItem(userId, request);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createComment(@Validated({Create.class}) @RequestBody CommentDto commentDto,
+                                 @RequestHeader(userIdFromHeader) Long userId,
+                                 @PathVariable Long itemId) {
+
+        return itemService.createComment(commentDto, userId, itemId);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
