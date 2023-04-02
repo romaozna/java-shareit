@@ -22,7 +22,7 @@ import java.util.List;
 
 @Transactional
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class BookingServiceIntegrationTest {
 
     @Autowired
@@ -115,6 +115,7 @@ public class BookingServiceIntegrationTest {
         List<BookingOutDto> bookingOutputDtoList = bookingService
                 .getAllByOwner(createdUser2.getId(), State.ALL, 0, 2);
 
+        Assertions.assertEquals(2, bookingOutputDtoList.size());
         Assertions.assertEquals(1L, bookingOutputDtoList.get(0).getId());
         Assertions.assertEquals(1L, bookingOutputDtoList.get(0).getBooker().getId());
         Assertions.assertEquals(2L, bookingOutputDtoList.get(0).getItem().getId());
