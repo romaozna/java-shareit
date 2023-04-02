@@ -66,8 +66,8 @@ public class BookingServiceIntegrationTest {
 
     private final BookingInDto bookingInDto1 = new BookingInDto(
             2L,
-            LocalDateTime.now().plusMinutes(30),
-            LocalDateTime.now().plusHours(1));
+            LocalDateTime.now().plusDays(1),
+            LocalDateTime.now().plusDays(2));
 
     private final BookingInDto bookingInDto2 = new BookingInDto(
             2L,
