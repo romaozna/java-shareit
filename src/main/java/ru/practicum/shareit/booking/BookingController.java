@@ -11,12 +11,14 @@ import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.BadRequestException;
 
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/bookings")
+@Validated
 public class BookingController {
     private final BookingService bookingService;
     private final String userIdFromHeader = "X-Sharer-User-Id";
@@ -41,22 +43,30 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<BookingOutDto> getAll(@RequestHeader(userIdFromHeader) Long userId,
-                                      @RequestParam(name = "state", defaultValue = "ALL") String state) {
+    public List<BookingOutDto> getAll(
+            @RequestHeader(userIdFromHeader) Long userId,
+            @RequestParam(name = "state", defaultValue = "ALL") String state,
+            @RequestParam(value = "from", required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(value = "size", required = false, defaultValue = "10") @Min(1) Integer size) {
+
         State bookingState = State.from(state);
         if (bookingState == null) {
             throw new BadRequestException("Unknown state: " + state);
         }
-        return bookingService.getAllByBooker(userId, bookingState);
+        return bookingService.getAllByBooker(userId, bookingState, from, size);
     }
 
     @GetMapping("/owner")
-    public List<BookingOutDto> getAllByOwner(@RequestHeader(userIdFromHeader) Long userId,
-                                             @RequestParam(name = "state", defaultValue = "ALL") String state) {
+    public List<BookingOutDto> getAllByOwner(
+            @RequestHeader(userIdFromHeader) Long userId,
+            @RequestParam(name = "state", defaultValue = "ALL") String state,
+            @RequestParam(value = "from", required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(value = "size", required = false, defaultValue = "10") @Min(1) Integer size) {
+
         State bookingState = State.from(state);
         if (bookingState == null) {
             throw new BadRequestException("Unknown state: " + state);
         }
-        return bookingService.getAllByOwner(userId, bookingState);
+        return bookingService.getAllByOwner(userId, bookingState, from, size);
     }
 }

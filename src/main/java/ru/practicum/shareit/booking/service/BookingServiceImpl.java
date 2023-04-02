@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dao.BookingStorage;
@@ -19,6 +21,7 @@ import ru.practicum.shareit.user.dao.UserStorage;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -93,56 +96,58 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingOutDto> getAllByBooker(Long userId, State state) {
-        LocalDateTime now = LocalDateTime.now();
+    public List<BookingOutDto> getAllByBooker(Long userId, State state, Integer from, Integer size) {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);;
         validateUserByIdOrException(userId);
+        Pageable pageable = PageRequest.of(from / size, size);
 
         switch (state) {
 
             case CURRENT:
-                return mapToDto(bookingStorage.getCurrentBookingsByBooker(userId, now));
+                return mapToDto(bookingStorage.getCurrentBookingsByBooker(userId, now, pageable));
 
             case PAST:
-                return mapToDto(bookingStorage.getPastBookingsByBooker(userId, now));
+                return mapToDto(bookingStorage.getPastBookingsByBooker(userId, now, pageable));
 
             case FUTURE:
-                return mapToDto(bookingStorage.getFutureBookingsByBooker(userId, now));
+                return mapToDto(bookingStorage.getFutureBookingsByBooker(userId, now, pageable));
 
             case WAITING:
-                return mapToDto(bookingStorage.getWaitingBookingsByBooker(userId, now));
+                return mapToDto(bookingStorage.getWaitingBookingsByBooker(userId, now, pageable));
 
             case REJECTED:
-                return mapToDto(bookingStorage.getRejectedBookingsByBooker(userId));
+                return mapToDto(bookingStorage.getRejectedBookingsByBooker(userId, pageable));
 
             default:
-                return mapToDto(bookingStorage.getBookingsByBookerIdOrderByStartDesc(userId));
+                return mapToDto(bookingStorage.getBookingsByBookerIdOrderByStartDesc(userId, pageable));
         }
     }
 
     @Override
-    public List<BookingOutDto> getAllByOwner(Long userId, State state) {
-        LocalDateTime now = LocalDateTime.now();
+    public List<BookingOutDto> getAllByOwner(Long userId, State state, Integer from, Integer size) {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);;
         validateUserByIdOrException(userId);
+        Pageable pageable = PageRequest.of(from / size, size);
 
         switch (state) {
 
             case CURRENT:
-                return mapToDto(bookingStorage.getCurrentBookingsByOwner(userId, now));
+                return mapToDto(bookingStorage.getCurrentBookingsByOwner(userId, now, pageable));
 
             case PAST:
-                return mapToDto(bookingStorage.getPastBookingsByOwner(userId, now));
+                return mapToDto(bookingStorage.getPastBookingsByOwner(userId, now, pageable));
 
             case FUTURE:
-                return mapToDto(bookingStorage.getFutureBookingsByOwner(userId, now));
+                return mapToDto(bookingStorage.getFutureBookingsByOwner(userId, now, pageable));
 
             case WAITING:
-                return mapToDto(bookingStorage.getWaitingBookingsByOwner(userId, now));
+                return mapToDto(bookingStorage.getWaitingBookingsByOwner(userId, now, pageable));
 
             case REJECTED:
-                return mapToDto(bookingStorage.getRejectedBookingsByOwner(userId));
+                return mapToDto(bookingStorage.getRejectedBookingsByOwner(userId, pageable));
 
             default:
-                return mapToDto(bookingStorage.getAllBookingsByOwner(userId));
+                return mapToDto(bookingStorage.getAllBookingsByOwner(userId, pageable));
         }
     }
 

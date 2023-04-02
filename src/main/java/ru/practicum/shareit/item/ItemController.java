@@ -10,6 +10,8 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
+import javax.validation.constraints.Min;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,8 +29,12 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> getUserItems(@RequestHeader(userIdFromHeader) Long userId) {
-        return itemService.getUserItems(userId);
+    public List<ItemDto> getUserItems(
+            @RequestHeader(userIdFromHeader) Long userId,
+            @RequestParam(value = "from", required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(value = "size", required = false, defaultValue = "10") @Min(1) Integer size) {
+
+        return itemService.getUserItems(userId, from, size);
     }
 
     @PostMapping
@@ -44,9 +50,13 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestHeader(userIdFromHeader) Long userId,
-                                    @RequestParam(name = "text") String request) {
-        return request.isBlank() ? Collections.emptyList() : itemService.searchItem(userId, request);
+    public List<ItemDto> searchItem(
+            @RequestHeader(userIdFromHeader) Long userId,
+            @RequestParam(name = "text") String request,
+            @RequestParam(value = "from", required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(value = "size", required = false, defaultValue = "10") @Min(1) Integer size) {
+
+        return request.isBlank() ? Collections.emptyList() : itemService.searchItem(userId, request, from, size);
     }
 
     @PostMapping("/{itemId}/comment")
@@ -54,7 +64,7 @@ public class ItemController {
                                  @RequestHeader(userIdFromHeader) Long userId,
                                  @PathVariable Long itemId) {
 
-        return itemService.createComment(commentDto, userId, itemId);
+        return itemService.createComment(commentDto, userId, itemId, LocalDateTime.now());
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
