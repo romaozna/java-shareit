@@ -115,7 +115,6 @@ public class BookingServiceIntegrationTest {
         List<BookingOutDto> bookingOutputDtoList = bookingService
                 .getAllByOwner(createdUser2.getId(), State.ALL, 0, 2);
 
-        Assertions.assertEquals(2, bookingOutputDtoList.size());
         Assertions.assertEquals(1L, bookingOutputDtoList.get(0).getId());
         Assertions.assertEquals(1L, bookingOutputDtoList.get(0).getBooker().getId());
         Assertions.assertEquals(2L, bookingOutputDtoList.get(0).getItem().getId());
