@@ -22,7 +22,7 @@ public class ItemRequestDtoTest {
     private ItemRequestDto requestDto = null;
 
     @BeforeEach
-    public void setup() {
+    public void initVarsForTests() {
         requestDto = new ItemRequestDto(
                 1L,
                 "Хотел бы воспользоваться щёткой для обуви",

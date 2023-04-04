@@ -13,7 +13,6 @@ import ru.practicum.shareit.request.service.RequestService;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -43,19 +42,23 @@ public class RequestControllerTest {
     @Autowired
     private MockMvc mvc;
 
-    private final UserDto userDto = new UserDto(
-            1L,
-            "Roman",
-            "roman@mail.com");
-
-    private final ItemRequestDto requestDto = new ItemRequestDto(
-            1L,
-            "request",
-            LocalDateTime.now(),
-            new ArrayList<>());
+    private ItemRequestDto requestDto;
+    public static final String STANDARD_CHARSET = "StandardCharsets.UTF_8";
+    public static final String SHARER_USER_ID = "X-Sharer-User-Id";
 
     @BeforeEach
-    void setup() {
+    void initVarsForTests() {
+        UserDto userDto = new UserDto(
+                1L,
+                "Roman",
+                "roman@mail.com");
+
+        requestDto = new ItemRequestDto(
+                1L,
+                "request",
+                LocalDateTime.now(),
+                new ArrayList<>());
+
         when(userService.getById(anyLong())).thenReturn(userDto);
     }
 
@@ -65,9 +68,9 @@ public class RequestControllerTest {
 
         mvc.perform(post("/requests")
                         .content(mapper.writeValueAsString(requestDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description", is(requestDto.getDescription())));
     }
@@ -77,9 +80,9 @@ public class RequestControllerTest {
         when(requestService.getAllUserRequests(anyLong())).thenReturn(List.of(requestDto));
 
         mvc.perform(get("/requests")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(requestDto.getId()), Long.class))
@@ -94,9 +97,9 @@ public class RequestControllerTest {
         when(requestService.getRequestById(anyLong(), anyLong())).thenReturn(requestDto);
 
         mvc.perform(get("/requests/{requestId}", "1")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(requestDto.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(requestDto.getDescription())))
@@ -111,9 +114,9 @@ public class RequestControllerTest {
                 .thenReturn(List.of(requestDto));
 
         mvc.perform(get("/requests/all")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("from", "0")
                         .param("size", "1"))
                 .andExpect(status().isOk())
@@ -130,9 +133,9 @@ public class RequestControllerTest {
                 .thenReturn(List.of(requestDto));
 
         mvc.perform(get("/requests/all")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("from", "-1")
                         .param("size", "-1"))
                 .andExpect(status().isInternalServerError());

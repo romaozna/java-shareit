@@ -1,6 +1,7 @@
 package ru.practicum.shareit.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -9,12 +10,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.dto.BookingInDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,46 +31,50 @@ public class ErrorHandlerTest {
     @Autowired
     private ObjectMapper mapper;
 
-    private final UserDto userDto = new UserDto(
-            null,
-            "Roman",
-            "roman@mail.com");
+    public static final String STANDARD_CHARSET = "StandardCharsets.UTF_8";
+    public static final String SHARER_USER_ID = "X-Sharer-User-Id";
+    private UserDto userDto;
+    private UserDto userDtoWithErrorEmail;
+    private ItemDto itemDto;
 
-    private final UserDto userDtoWithErrorEmail = new UserDto(
-            null,
-            "Roman",
-            "romanmail.com");
+    @BeforeEach
+    public void initVarsForTests() {
+        userDto = new UserDto(
+                null,
+                "Roman",
+                "roman@mail.com");
 
-    private final ItemDto itemDto = new ItemDto(
-            null,
-            "Brush",
-            "Best brush",
-            false,
-            null,
-            null,
-            new ArrayList<>(),
-            null);
+        userDtoWithErrorEmail = new UserDto(
+                null,
+                "Roman",
+                "romanmail.com");
 
-    private final BookingInDto bookingInputDto = new BookingInDto(
-            1L,
-            LocalDateTime.now(),
-            LocalDateTime.now());
+        itemDto = new ItemDto(
+                null,
+                "Brush",
+                "Best brush",
+                false,
+                null,
+                null,
+                new ArrayList<>(),
+                null);
+    }
 
     @Test
     void badPathVariableTest() throws Exception {
         mvc.perform(get("/items/hello")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isInternalServerError());
     }
 
     @Test
     void notFoundTest() throws Exception {
         mvc.perform(get("/requests/99")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isNotFound());
     }
 
@@ -80,7 +82,7 @@ public class ErrorHandlerTest {
     void badParamsTest() throws Exception {
         mvc.perform(post("/users")
                         .content(mapper.writeValueAsString(userDtoWithErrorEmail))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -89,13 +91,13 @@ public class ErrorHandlerTest {
     void conflictTest() throws Exception {
         mvc.perform(post("/users")
                         .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
         mvc.perform(post("/users")
                         .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
     }
@@ -104,23 +106,23 @@ public class ErrorHandlerTest {
     void badRequestTest() throws Exception {
         mvc.perform(post("/users")
                         .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk());
 
         mvc.perform(post("/items")
                         .content(mapper.writeValueAsString(itemDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk());
 
         mvc.perform(get("/bookings")
                         .queryParam("state", "UNKNOWN")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -128,7 +130,7 @@ public class ErrorHandlerTest {
     void validationTest() throws Exception {
         mvc.perform(post("/users")
                         .content(mapper.writeValueAsString(userDtoWithErrorEmail))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError());
     }

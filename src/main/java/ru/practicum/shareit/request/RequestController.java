@@ -15,31 +15,31 @@ import java.util.List;
 @RequestMapping(path = "/requests")
 @Validated
 public class RequestController {
-    private final String userIdFromHeader = "X-Sharer-User-Id";
     private final RequestService requestService;
+    public static final String USER_ID_FROM_HEADER = "X-Sharer-User-Id";
 
     @PostMapping
-    public ItemRequestDto create(@RequestHeader(userIdFromHeader) Long userId,
+    public ItemRequestDto create(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
                              @Validated({Create.class}) @RequestBody ItemRequestDto requestDto) {
         return requestService.create(userId, requestDto);
     }
 
     @GetMapping
-    public List<ItemRequestDto> getAllRequests(@RequestHeader(userIdFromHeader) Long userId) {
+    public List<ItemRequestDto> getAllRequests(@RequestHeader(USER_ID_FROM_HEADER) Long userId) {
         return requestService.getAllUserRequests(userId);
     }
 
     @GetMapping("/{requestId}")
-    public ItemRequestDto getRequestById(@RequestHeader(userIdFromHeader) Long userId,
-                                                 @PathVariable("requestId") Long requestId) {
+    public ItemRequestDto getRequestById(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
+                                                 @PathVariable Long requestId) {
         return requestService.getRequestById(userId, requestId);
     }
 
     @GetMapping("/all")
     public List<ItemRequestDto> getAllRequests(
-            @RequestHeader(userIdFromHeader) Long userId,
-            @RequestParam(value = "from", required = false, defaultValue = "0") @Min(0) Integer from,
-            @RequestParam(value = "size", required = false, defaultValue = "10") @Min(1) Integer size) {
+            @RequestHeader(USER_ID_FROM_HEADER) Long userId,
+            @RequestParam(required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(required = false, defaultValue = "10") @Min(1) Integer size) {
 
         return requestService.getAllRequests(userId, from, size);
     }

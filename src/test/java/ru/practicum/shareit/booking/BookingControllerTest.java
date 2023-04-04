@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -16,7 +17,6 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -44,33 +44,50 @@ public class BookingControllerTest {
     @Autowired
     private MockMvc mvc;
 
-    private final UserDto userDto = new UserDto(
-            1L,
-            "Roman",
-            "Roman@mail.com");
+    private BookingOutDto bookingOutDto;
+    private BookingInDto bookingInDto;
+    public static final String STANDARD_CHARSET = "StandardCharsets.UTF_8";
+    public static final String SHARER_USER_ID = "X-Sharer-User-Id";
+    public static final String BOOKING_ID = "$.id";
+    public static final String BOOKING_START = "$.start";
+    public static final String BOOKING_END = "$.end";
+    public static final String BOOKING_STATUS = "$.status";
+    public static final String BOOKING_BOOKER_ID = "$.booker.id";
+    public static final String BOOKING_ITEM_ID = "$.item.id";
 
-    private final ItemDto itemDto = new ItemDto(
-            1L,
-            "brush",
-            "best brush",
-            true,
-            null,
-            null,
-            new ArrayList<>(),
-            1L);
 
-    private final BookingOutDto bookingOutDto = new BookingOutDto(
-            1L,
-            LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
-            LocalDateTime.now().plusDays(1).truncatedTo(ChronoUnit.SECONDS),
-            Status.WAITING.name(),
-            userDto,
-            itemDto);
+    @BeforeEach
+    public void initVarsForTests() {
+        LocalDateTime now = LocalDateTime.now();
 
-    private final BookingInDto bookingInDto = new BookingInDto(
-            1L,
-            LocalDateTime.now(),
-            LocalDateTime.now().plusDays(1));
+        UserDto userDto = new UserDto(
+                1L,
+                "Roman",
+                "Roman@mail.com");
+
+        ItemDto itemDto = new ItemDto(
+                1L,
+                "brush",
+                "best brush",
+                true,
+                null,
+                null,
+                new ArrayList<>(),
+                1L);
+
+        bookingOutDto = new BookingOutDto(
+                1L,
+                now.truncatedTo(ChronoUnit.SECONDS),
+                now.plusDays(1).truncatedTo(ChronoUnit.SECONDS),
+                Status.WAITING.name(),
+                userDto,
+                itemDto);
+
+        bookingInDto = new BookingInDto(
+                1L,
+                now,
+                now.plusDays(1));
+    }
 
     @Test
     void createNewBookingTest() throws Exception {
@@ -79,16 +96,16 @@ public class BookingControllerTest {
 
         mvc.perform(post("/bookings")
                         .content(mapper.writeValueAsString(bookingInDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(bookingOutDto.getId()), Long.class))
-                .andExpect(jsonPath("$.start", is(bookingOutDto.getStart().toString())))
-                .andExpect(jsonPath("$.end", is(bookingOutDto.getEnd().toString())))
-                .andExpect(jsonPath("$.status", is(bookingOutDto.getStatus())))
-                .andExpect(jsonPath("$.booker.id", is(bookingOutDto.getBooker().getId()), Long.class))
-                .andExpect(jsonPath("$.item.id", is(bookingOutDto.getItem().getId()), Long.class));
+                .andExpect(jsonPath(BOOKING_ID, is(bookingOutDto.getId()), Long.class))
+                .andExpect(jsonPath(BOOKING_START, is(bookingOutDto.getStart().toString())))
+                .andExpect(jsonPath(BOOKING_END, is(bookingOutDto.getEnd().toString())))
+                .andExpect(jsonPath(BOOKING_STATUS, is(bookingOutDto.getStatus())))
+                .andExpect(jsonPath(BOOKING_BOOKER_ID, is(bookingOutDto.getBooker().getId()), Long.class))
+                .andExpect(jsonPath(BOOKING_ITEM_ID, is(bookingOutDto.getItem().getId()), Long.class));
     }
 
     @Test
@@ -98,17 +115,17 @@ public class BookingControllerTest {
 
         mvc.perform(patch("/bookings/{bookingId}", "1")
                         .content(mapper.writeValueAsString(bookingInDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("approved", "true"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(bookingOutDto.getId()), Long.class))
-                .andExpect(jsonPath("$.start", is(bookingOutDto.getStart().toString())))
-                .andExpect(jsonPath("$.end", is(bookingOutDto.getEnd().toString())))
-                .andExpect(jsonPath("$.status", is(bookingOutDto.getStatus())))
-                .andExpect(jsonPath("$.booker.id", is(bookingOutDto.getBooker().getId()), Long.class))
-                .andExpect(jsonPath("$.item.id", is(bookingOutDto.getItem().getId()), Long.class));
+                .andExpect(jsonPath(BOOKING_ID, is(bookingOutDto.getId()), Long.class))
+                .andExpect(jsonPath(BOOKING_START, is(bookingOutDto.getStart().toString())))
+                .andExpect(jsonPath(BOOKING_END, is(bookingOutDto.getEnd().toString())))
+                .andExpect(jsonPath(BOOKING_STATUS, is(bookingOutDto.getStatus())))
+                .andExpect(jsonPath(BOOKING_BOOKER_ID, is(bookingOutDto.getBooker().getId()), Long.class))
+                .andExpect(jsonPath(BOOKING_ITEM_ID, is(bookingOutDto.getItem().getId()), Long.class));
     }
 
     @Test
@@ -117,16 +134,16 @@ public class BookingControllerTest {
 
         mvc.perform(get("/bookings/{bookingId}", "1")
                         .content(mapper.writeValueAsString(bookingInDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(bookingOutDto.getId()), Long.class))
-                .andExpect(jsonPath("$.start", is(bookingOutDto.getStart().toString())))
-                .andExpect(jsonPath("$.end", is(bookingOutDto.getEnd().toString())))
-                .andExpect(jsonPath("$.status", is(bookingOutDto.getStatus())))
-                .andExpect(jsonPath("$.booker.id", is(bookingOutDto.getBooker().getId()), Long.class))
-                .andExpect(jsonPath("$.item.id", is(bookingOutDto.getItem().getId()), Long.class));
+                .andExpect(jsonPath(BOOKING_ID, is(bookingOutDto.getId()), Long.class))
+                .andExpect(jsonPath(BOOKING_START, is(bookingOutDto.getStart().toString())))
+                .andExpect(jsonPath(BOOKING_END, is(bookingOutDto.getEnd().toString())))
+                .andExpect(jsonPath(BOOKING_STATUS, is(bookingOutDto.getStatus())))
+                .andExpect(jsonPath(BOOKING_BOOKER_ID, is(bookingOutDto.getBooker().getId()), Long.class))
+                .andExpect(jsonPath(BOOKING_ITEM_ID, is(bookingOutDto.getItem().getId()), Long.class));
     }
 
     @Test
@@ -136,9 +153,9 @@ public class BookingControllerTest {
 
         mvc.perform(get("/bookings")
                         .content(mapper.writeValueAsString(bookingInDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("state", "ALL")
                         .param("from", "0")
                         .param("size", "10"))
@@ -158,9 +175,9 @@ public class BookingControllerTest {
 
         mvc.perform(get("/bookings")
                         .content(mapper.writeValueAsString(bookingInDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("state", "UNKNOWN")
                         .param("from", "0")
                         .param("size", "10"))
@@ -178,9 +195,9 @@ public class BookingControllerTest {
 
         mvc.perform(get("/bookings/owner")
                         .content(mapper.writeValueAsString(bookingInDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("state", "ALL")
                         .param("from", "0")
                         .param("size", "10"))
@@ -200,9 +217,9 @@ public class BookingControllerTest {
 
         mvc.perform(get("/bookings/owner")
                         .content(mapper.writeValueAsString(bookingInDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("state", "UNKNOWN")
                         .param("from", "0")
                         .param("size", "10"))

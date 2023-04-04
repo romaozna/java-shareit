@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -8,11 +9,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import ru.practicum.shareit.request.dao.RequestStorage;
+import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.RequestServiceImpl;
-import ru.practicum.shareit.user.dao.UserStorage;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
@@ -31,40 +32,48 @@ public class RequestServiceTest {
     private RequestServiceImpl requestService;
 
     @Mock
-    private RequestStorage requestStorage;
+    private RequestRepository requestRepository;
 
     @Mock
-    private UserStorage userStorage;
+    private UserRepository userRepository;
 
-    private final UserDto userDto = new UserDto(
-            1L,
-            "Roman",
-            "roman@mail.com");
+    private UserDto userDto;
+    private User user;
+    private ItemRequestDto requestDto;
+    private ItemRequest request;
 
-    private final User user = new User(
-            1L,
-            "Roman",
-            "roman@mail.com");
+    @BeforeEach
+    public void initVarsForTests() {
+        LocalDateTime now = LocalDateTime.now();
 
-    private final LocalDateTime time = LocalDateTime.now();
+        userDto = new UserDto(
+                1L,
+                "Roman",
+                "roman@mail.com");
 
-    private final ItemRequestDto requestDto = new ItemRequestDto(
-            1L,
-            "request",
-            time,
-            new ArrayList<>());
+        user = new User(
+                1L,
+                "Roman",
+                "roman@mail.com");
 
-    private final ItemRequest request = new ItemRequest(
-            1L,
-            "request",
-            1L,
-            time,
-            new ArrayList<>());
+        requestDto = new ItemRequestDto(
+                1L,
+                "request",
+                now,
+                new ArrayList<>());
+
+        request = new ItemRequest(
+                1L,
+                "request",
+                1L,
+                now,
+                new ArrayList<>());
+    }
 
     @Test
-    void createRequest() {
-        when(requestStorage.save(any(ItemRequest.class))).thenReturn(request);
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
+    void createRequestTest() {
+        when(requestRepository.save(any(ItemRequest.class))).thenReturn(request);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
 
         ItemRequestDto createdRequest = requestService.create(userDto.getId(),requestDto);
 
@@ -74,14 +83,14 @@ public class RequestServiceTest {
         Assertions.assertEquals(requestDto.getCreated(), createdRequest.getCreated());
         Assertions.assertEquals(requestDto.getItems().size(), createdRequest.getItems().size());
 
-        verify(requestStorage, times(1)).save(any(ItemRequest.class));
-        verifyNoMoreInteractions(requestStorage);
+        verify(requestRepository, times(1)).save(any(ItemRequest.class));
+        verifyNoMoreInteractions(requestRepository);
     }
 
     @Test
-    void getAllOwnRequestsById() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(requestStorage.findAllByRequesterIdOrderByCreatedAsc(anyLong()))
+    void getAllOwnRequestsByIdTest() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(requestRepository.findAllByRequesterIdOrderByCreatedAsc(anyLong()))
                 .thenReturn(List.of(request));
 
         List<ItemRequestDto> requests = requestService.getAllUserRequests(anyLong());
@@ -92,15 +101,15 @@ public class RequestServiceTest {
         Assertions.assertEquals(requestDto.getCreated(), requests.get(0).getCreated());
         Assertions.assertEquals(requestDto.getItems().size(), requests.get(0).getItems().size());
 
-        verify(requestStorage, times(1))
+        verify(requestRepository, times(1))
                 .findAllByRequesterIdOrderByCreatedAsc(anyLong());
-        verifyNoMoreInteractions(requestStorage);
+        verifyNoMoreInteractions(requestRepository);
     }
 
     @Test
-    void getByRequestId() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(requestStorage.findById(anyLong())).thenReturn(Optional.of(request));
+    void getByRequestIdTest() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(requestRepository.findById(anyLong())).thenReturn(Optional.of(request));
 
         ItemRequestDto foundRequest = requestService.getRequestById(1L, 1L);
 
@@ -110,16 +119,16 @@ public class RequestServiceTest {
         Assertions.assertEquals(requestDto.getCreated(), foundRequest.getCreated());
         Assertions.assertEquals(requestDto.getItems().size(), foundRequest.getItems().size());
 
-        verify(requestStorage, times(1)).findById(anyLong());
-        verifyNoMoreInteractions(requestStorage);
+        verify(requestRepository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(requestRepository);
     }
 
     @Test
-    void getAllRequests() {
+    void getAllRequestsTest() {
         Pageable pageable = PageRequest.of(0, 1);
 
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(requestStorage.findAllByRequesterIdNotOrderByCreatedAsc(1L, pageable))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(requestRepository.findAllByRequesterIdNotOrderByCreatedAsc(1L, pageable))
                 .thenReturn(List.of(request));
 
         List<ItemRequestDto> requests = requestService.getAllRequests(1L, 0, 1);
@@ -130,8 +139,8 @@ public class RequestServiceTest {
         Assertions.assertEquals(requestDto.getCreated(), requests.get(0).getCreated());
         Assertions.assertEquals(requestDto.getItems().size(), requests.get(0).getItems().size());
 
-        verify(requestStorage, times(1))
+        verify(requestRepository, times(1))
                 .findAllByRequesterIdNotOrderByCreatedAsc(anyLong(), any(Pageable.class));
-        verifyNoMoreInteractions(requestStorage);
+        verifyNoMoreInteractions(requestRepository);
     }
 }

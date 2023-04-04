@@ -9,7 +9,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.dao.RequestStorage;
+import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -18,40 +18,43 @@ import java.util.List;
 
 @DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class RequestStorageTest {
+public class RequestRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Autowired
-    private RequestStorage requestStorage;
+    private RequestRepository requestRepository;
 
-    private final User user = new User(
-            null,
-            "Roman",
-            "roman@mail.com");
-
-    private final User anotherUser = new User(
-            null,
-            "Max",
-            "Max@mail.com");
-
-    private final ItemRequest request = new ItemRequest(
-            null,
-            "request",
-            1L,
-            LocalDateTime.now(),
-            new ArrayList<>());
-
-    private final ItemRequest anotherRequest = new ItemRequest(
-            null,
-            "another request",
-            2L,
-            LocalDateTime.now().plusDays(1),
-            new ArrayList<>());
+    private ItemRequest request;
+    private ItemRequest anotherRequest;
 
     @BeforeEach
     void setup() {
+        User user = new User(
+                null,
+                "Roman",
+                "roman@mail.com");
+
+        User anotherUser = new User(
+                null,
+                "Max",
+                "Max@mail.com");
+
+        request = new ItemRequest(
+                null,
+                "request",
+                1L,
+                LocalDateTime.now(),
+                new ArrayList<>());
+
+        anotherRequest = new ItemRequest(
+                null,
+                "another request",
+                2L,
+                LocalDateTime.now().plusDays(1),
+                new ArrayList<>());
+
         entityManager.persist(user);
         entityManager.persist(anotherUser);
         entityManager.flush();
@@ -59,7 +62,7 @@ public class RequestStorageTest {
 
     @Test
     void createRequestTest() {
-        ItemRequest createdRequest = requestStorage.save(request);
+        ItemRequest createdRequest = requestRepository.save(request);
 
         Assertions.assertNotNull(createdRequest);
         Assertions.assertEquals(1L, createdRequest.getId());
@@ -73,7 +76,7 @@ public class RequestStorageTest {
         entityManager.persist(request);
         entityManager.flush();
 
-        ItemRequest found = requestStorage.findById(1L).orElse(null);
+        ItemRequest found = requestRepository.findById(1L).orElse(null);
 
         Assertions.assertNotNull(found);
         Assertions.assertEquals(1L, found.getId());
@@ -90,7 +93,7 @@ public class RequestStorageTest {
 
         Long user2Id = 2L;
         Long user1Id = 1L;
-        List<ItemRequest> requests = requestStorage
+        List<ItemRequest> requests = requestRepository
                 .findAllByRequesterIdNotOrderByCreatedAsc(user2Id, PageRequest.of(0, 1));
 
         Assertions.assertEquals(1, requests.size());
@@ -107,7 +110,7 @@ public class RequestStorageTest {
         entityManager.flush();
 
         Long user2Id = 2L;
-        List<ItemRequest> requests = requestStorage.findAllByRequesterIdOrderByCreatedAsc(user2Id);
+        List<ItemRequest> requests = requestRepository.findAllByRequesterIdOrderByCreatedAsc(user2Id);
 
         Assertions.assertEquals(1, requests.size());
         Assertions.assertEquals(2L, requests.get(0).getId());

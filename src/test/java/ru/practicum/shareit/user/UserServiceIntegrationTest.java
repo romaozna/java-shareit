@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,13 +19,18 @@ public class UserServiceIntegrationTest {
     @Autowired
     private UserService userService;
 
-    private final UserDto userDto = new UserDto(
-            null,
-            "Roman",
-            "roman@mail.dom");
+    private UserDto userDto;
+
+    @BeforeEach
+    public void initVarsForTests() {
+        userDto = new UserDto(
+                1L,
+                "Roman",
+                "roman@mail.com");
+    }
 
     @Test
-    void createNewUser() {
+    void createNewUserTest() {
         UserDto createdUser = userService.create(userDto);
 
         Assertions.assertEquals(1L, createdUser.getId());
@@ -33,7 +39,7 @@ public class UserServiceIntegrationTest {
     }
 
     @Test
-    void getUserWithInvalidId() {
+    void getUserWithInvalidIdTest() {
         Long userId = 999L;
 
         Assertions.assertThrows(NotFoundException.class, () -> userService.getById(userId));

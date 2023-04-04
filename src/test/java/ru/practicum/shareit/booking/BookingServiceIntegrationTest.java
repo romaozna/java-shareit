@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,55 +35,71 @@ public class BookingServiceIntegrationTest {
     @Autowired
     private ItemService itemService;
 
-    private final UserDto userDto1 = new UserDto(
-            null,
-            "Roman",
-            "Roman@mail.com");
+    private UserDto createdUser1;
+    private UserDto createdUser2;
+    private ItemDto createdItem1;
+    private ItemDto createdItem2;
+    private BookingOutDto bookingOutDto1;
+    private BookingOutDto bookingOutDto2;
 
-    private final UserDto userDto2 = new UserDto(
-            null,
-            "Max",
-            "max@mail.com");
+    @BeforeEach
+    public void initVarsForTests() {
 
-    private final ItemDto itemDto1 = new ItemDto(
-            null,
-            "brush",
-            "best brush",
-            true,
-            null,
-            null,
-            null,
-            null);
+        UserDto userDto1 = new UserDto(
+                null,
+                "Roman",
+                "Roman@mail.com");
 
-    private final ItemDto itemDto2 = new ItemDto(
-            null,
-            "hummer",
-            "best hummer",
-            true,
-            null,
-            null,
-            null,
-            null);
+        UserDto userDto2 = new UserDto(
+                null,
+                "Max",
+                "max@mail.com");
 
-    private final BookingInDto bookingInDto1 = new BookingInDto(
-            2L,
-            LocalDateTime.now().plusDays(1),
-            LocalDateTime.now().plusDays(2));
+        ItemDto itemDto1 = new ItemDto(
+                null,
+                "brush",
+                "best brush",
+                true,
+                null,
+                null,
+                null,
+                null);
 
-    private final BookingInDto bookingInDto2 = new BookingInDto(
-            2L,
-            LocalDateTime.now().plusMinutes(30),
-            LocalDateTime.now().plusHours(1));
+        ItemDto itemDto2 = new ItemDto(
+                null,
+                "hummer",
+                "best hummer",
+                true,
+                null,
+                null,
+                null,
+                null);
+
+        BookingInDto bookingInDto1 = new BookingInDto(
+                2L,
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2));
+
+        BookingInDto bookingInDto2 = new BookingInDto(
+                2L,
+                LocalDateTime.now().plusMinutes(30),
+                LocalDateTime.now().plusHours(1));
+
+        createdUser1 = userService.create(userDto1);
+
+        createdItem1 = itemService.create(createdUser1.getId(), itemDto1);
+
+        createdUser2 = userService.create(userDto2);
+
+        createdItem2 = itemService.create(createdUser2.getId(), itemDto2);
+
+        bookingOutDto1 = bookingService.create(createdUser1.getId(), bookingInDto1);
+
+        bookingOutDto2 = bookingService.create(createdUser1.getId(), bookingInDto2);
+    }
 
     @Test
-    void getAllBookingsByOwnerTest() {
-        UserDto createdUser1 = userService.create(userDto1);
-        ItemDto createdItem1 = itemService.create(createdUser1.getId(), itemDto1);
-        UserDto createdUser2 = userService.create(userDto2);
-        ItemDto createdItem2 = itemService.create(createdUser2.getId(), itemDto2);
-        BookingOutDto bookingOutDto1 = bookingService.create(createdUser1.getId(), bookingInDto1);
-        BookingOutDto bookingOutDto2 = bookingService.create(createdUser1.getId(), bookingInDto2);
-
+    void ifStatusBothCreatedBookingsIsWaitingTest() {
         Assertions.assertEquals(1L, createdItem1.getId());
         Assertions.assertEquals(2L, createdItem2.getId());
         Assertions.assertEquals(1L, bookingOutDto1.getId());
@@ -96,7 +113,10 @@ public class BookingServiceIntegrationTest {
         Assertions.assertEquals(1L, bookingOutDto2.getBooker().getId());
         Assertions.assertEquals(2L, bookingOutDto2.getItem().getId());
         Assertions.assertEquals(Status.WAITING.name(), bookingOutDto2.getStatus());
+    }
 
+    @Test
+    void ifStatusBothCreatedBookingsIsApprovedTest() {
         BookingOutDto approveOutDto1 = bookingService
                 .approveOrReject(createdUser2.getId(), bookingOutDto1.getId(), true);
         BookingOutDto approveOutDto2 = bookingService
@@ -111,6 +131,12 @@ public class BookingServiceIntegrationTest {
         Assertions.assertEquals(1L, approveOutDto2.getBooker().getId());
         Assertions.assertEquals(2L, approveOutDto2.getItem().getId());
         Assertions.assertEquals(Status.APPROVED.name(), approveOutDto2.getStatus());
+    }
+
+    @Test
+    void ifSizeOfReturnedListConsistBothBookingsForOwnerTest() {
+        bookingService.approveOrReject(createdUser2.getId(), bookingOutDto1.getId(), true);
+        bookingService.approveOrReject(createdUser2.getId(), bookingOutDto2.getId(), true);
 
         List<BookingOutDto> bookingOutputDtoList = bookingService
                 .getAllByOwner(createdUser2.getId(), State.ALL, 0, 2);
@@ -123,28 +149,9 @@ public class BookingServiceIntegrationTest {
     }
 
     @Test
-    void getAllFutureBookingsByBookerTest() {
-        UserDto createdUser1 = userService.create(userDto1);
-        ItemDto createdItem1 = itemService.create(createdUser1.getId(), itemDto1);
-        UserDto createdUser2 = userService.create(userDto2);
-        ItemDto createdItem2 = itemService.create(createdUser2.getId(), itemDto2);
-        BookingOutDto bookingOutDto = bookingService.create(createdUser1.getId(), bookingInDto1);
-
-        Assertions.assertEquals(1L, createdItem1.getId());
-        Assertions.assertEquals(2L, createdItem2.getId());
-        Assertions.assertEquals(1L, bookingOutDto.getId());
-        Assertions.assertEquals(1L, bookingOutDto.getBooker().getId());
-        Assertions.assertEquals(2L, bookingOutDto.getItem().getId());
-        Assertions.assertEquals(Status.WAITING.name(), bookingOutDto.getStatus());
-
-        BookingOutDto approveOutputDto = bookingService
-                .approveOrReject(createdUser2.getId(), bookingOutDto.getId(), true);
-
-        Assertions.assertEquals(1L, approveOutputDto.getId());
-        Assertions.assertEquals(1L, approveOutputDto.getBooker().getId());
-        Assertions.assertEquals(2L, approveOutputDto.getItem().getId());
-        Assertions.assertEquals(Status.APPROVED.name(), approveOutputDto.getStatus());
-
+    void ifSizeOfReturnedListConsistBookingForBookerTest() {
+        bookingService.approveOrReject(createdUser2.getId(), bookingOutDto1.getId(), true);
+        bookingService.approveOrReject(createdUser2.getId(), bookingOutDto2.getId(), true);
         List<BookingOutDto> bookingOutputDtoList = bookingService
                 .getAllByBooker(createdUser1.getId(), State.FUTURE, 0, 1);
 
@@ -158,7 +165,7 @@ public class BookingServiceIntegrationTest {
 
     @Test
     void approveByOwnerWrongBookingIdTest() {
-        Long id = 2L;
+        Long id = 99L;
 
         Assertions
                 .assertThrows(NotFoundException.class, () -> bookingService.approveOrReject(id, id, true));
@@ -166,7 +173,7 @@ public class BookingServiceIntegrationTest {
 
     @Test
     void getBookingByIdWithWrongBookingIdTest() {
-        Long id = 2L;
+        Long id = 99L;
 
         Assertions
                 .assertThrows(NotFoundException.class, () -> bookingService.getById(id, id));

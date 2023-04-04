@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,16 +25,22 @@ public class RequestServiceIntegrationTest {
     @Autowired
     private UserService userService;
 
-    private final UserDto userDto = new UserDto(
-            null,
-            "Roman",
-            "roman@mail.com");
+    private UserDto userDto;
+    private ItemRequestDto requestDto;
 
-    private final ItemRequestDto requestDto = new ItemRequestDto(
-            1L,
-            "request",
-            null,
-            null);
+    @BeforeEach
+    public void initVarsForTests() {
+        userDto = new UserDto(
+                null,
+                "Roman",
+                "roman@mail.com");
+
+        requestDto = new ItemRequestDto(
+                1L,
+                "request",
+                null,
+                null);
+    }
 
     @Test
     void createRequestTest() {

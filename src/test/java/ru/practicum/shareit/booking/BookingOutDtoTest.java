@@ -24,7 +24,7 @@ public class BookingOutDtoTest {
     private BookingOutDto bookingOutputDto = null;
 
     @BeforeEach
-    public void setup() {
+    public void initVarsForTests() {
         bookingOutputDto = new BookingOutDto(
                 2L,
                 LocalDateTime.parse("2023-04-02T12:15:45.100"),

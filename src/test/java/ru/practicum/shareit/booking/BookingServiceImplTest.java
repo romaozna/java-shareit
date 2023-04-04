@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,15 +13,15 @@ import ru.practicum.shareit.booking.dto.BookingInDto;
 import ru.practicum.shareit.booking.dto.BookingOutDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.booking.dao.BookingStorage;
+import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dao.ItemStorage;
+import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.dao.UserStorage;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
@@ -42,119 +43,140 @@ public class BookingServiceImplTest {
     private BookingServiceImpl bookingService;
 
     @Mock
-    private BookingStorage bookingStorage;
+    private BookingRepository bookingRepository;
 
     @Mock
-    private UserStorage userStorage;
+    private UserRepository userRepository;
 
     @Mock
-    private ItemStorage itemStorage;
+    private ItemRepository itemRepository;
 
-    private final UserDto userDto = new UserDto(
-            1L,
-            "Roman",
-            "roman@mail.com");
+    private UserDto userDto;
+    private BookingOutDto bookingOutDto;
+    private BookingOutDto bookingApprovedDto;
+    private BookingInDto bookingInDto;
+    private BookingInDto bookingInDtoWithInvalidEnd;
+    private BookingInDto bookingInDateDtoWithInvalidStart;
+    private BookingInDto bookingInDtoWithSameStartDate;
+    private User user;
+    private Item item;
+    private Item itemUnavailable;
+    private Booking booking;
+    private Booking bookingWaiting;
+    private LocalDateTime currentTime;
 
-    private final UserDto anotherUserDto = new UserDto(
-            2L,
-            "Max",
-            "max@mail.com");
+    @BeforeEach
+    public void initVarsForTests() {
+        currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
 
-    private final ItemDto itemDtoId1 = new ItemDto(
-            1L,
-            "brush",
-            "best brush",
-            true,
-            null,
-            null,
-            new ArrayList<>(),
-            2L);
+        LocalDateTime start = currentTime.plusMinutes(1);
 
-    private final LocalDateTime start = LocalDateTime.now().plusMinutes(1);
-    private final LocalDateTime end = LocalDateTime.now().plusDays(1);
+        LocalDateTime end = currentTime.plusDays(1);
 
-    private final BookingOutDto bookingOutDto = new BookingOutDto(
-            1L,
-            start,
-            end,
-            Status.APPROVED.name(),
-            userDto,
-            itemDtoId1);
+        User anotherUser = new User(
+                2L,
+                "Max",
+                "max@mail.com");
 
-    private final BookingOutDto bookingApprovedDto = new BookingOutDto(
-            1L,
-            start,
-            end,
-            Status.APPROVED.name(),
-            anotherUserDto,
-            itemDtoId1);
+        UserDto anotherUserDto = new UserDto(
+                2L,
+                "Max",
+                "max@mail.com");
 
-    private final BookingInDto bookingInDto = new BookingInDto(
-            1L,
-            start,
-            end);
-    private final BookingInDto bookingInDtoWithInvalidEnd = new BookingInDto(
-            1L,
-            start,
-            end.minusDays(2));
+        ItemDto itemDtoId1 = new ItemDto(
+                1L,
+                "brush",
+                "best brush",
+                true,
+                null,
+                null,
+                new ArrayList<>(),
+                2L);
 
-    private final BookingInDto bookingInDateDtoWithInvalidStart = new BookingInDto(
-            1L,
-            start.minusDays(2),
-            end);
+        userDto = new UserDto(
+                1L,
+                "Roman",
+                "roman@mail.com");
 
-    private final BookingInDto bookingInDtoWithSameStartDate = new BookingInDto(
-            1L,
-            start,
-            start);
+        bookingOutDto = new BookingOutDto(
+                1L,
+                start,
+                end,
+                Status.APPROVED.name(),
+                userDto,
+                itemDtoId1);
 
-    private final User user = new User(
-            1L,
-            "Roman",
-            "roman@mail.com");
+        bookingApprovedDto = new BookingOutDto(
+                1L,
+                start,
+                end,
+                Status.APPROVED.name(),
+                anotherUserDto,
+                itemDtoId1);
 
-    private final User anotherUser = new User(
-            2L,
-            "Max",
-            "max@mail.com");
+        bookingInDto = new BookingInDto(
+                1L,
+                start,
+                end);
 
-    private final Item item = new Item(
-            1L,
-            "brush",
-            "best brush",
-            true,
-            anotherUser,
-            null);
+        bookingInDtoWithInvalidEnd = new BookingInDto(
+                1L,
+                start,
+                end.minusDays(2));
 
-    private final Item itemUnavailable = new Item(
-            1L,
-            "brush",
-            "best brush",
-            false,
-            anotherUser,
-            null);
+        bookingInDateDtoWithInvalidStart = new BookingInDto(
+                1L,
+                start.minusDays(2),
+                end);
 
-    private final Booking booking = new Booking(
-            1L,
-            start,
-            end,
-            item,
-            user,
-            Status.APPROVED);
+        bookingInDtoWithSameStartDate = new BookingInDto(
+                1L,
+                start,
+                start);
 
-    private final Booking bookingWaiting = new Booking(
-            1L,
-            start,
-            end,
-            item,
-            anotherUser,
-            Status.WAITING);
+        user = new User(
+                1L,
+                "Roman",
+                "roman@mail.com");
+
+        item = new Item(
+                1L,
+                "brush",
+                "best brush",
+                true,
+                anotherUser,
+                null);
+
+        itemUnavailable = new Item(
+                1L,
+                "brush",
+                "best brush",
+                false,
+                anotherUser,
+                null);
+
+        booking = new Booking(
+                1L,
+                start,
+                end,
+                item,
+                user,
+                Status.APPROVED);
+
+        bookingWaiting = new Booking(
+                1L,
+                start,
+                end,
+                item,
+                anotherUser,
+                Status.WAITING);
+    }
 
     @Test
     void createBookingTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(item));
-        when(bookingStorage.save(any(Booking.class))).thenReturn(booking);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
 
         BookingOutDto newBooking = bookingService.create(userDto.getId(), bookingInDto);
 
@@ -169,40 +191,40 @@ public class BookingServiceImplTest {
 
     @Test
     void createBookingUnavailableTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(itemUnavailable));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(itemUnavailable));
         Assertions.assertThrows(BadRequestException.class,
                 () -> bookingService.create(userDto.getId(), bookingInDto));
     }
 
     @Test
     void createBookingWrongEndDateTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(item));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
         Assertions.assertThrows(BadRequestException.class,
                 () -> bookingService.create(userDto.getId(), bookingInDtoWithInvalidEnd));
     }
 
     @Test
     void createBookingWrongStartDateTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(item));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
         Assertions.assertThrows(BadRequestException.class,
                 () -> bookingService.create(userDto.getId(), bookingInDateDtoWithInvalidStart));
     }
 
     @Test
     void createBookingEqualDatesTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(item));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
         Assertions.assertThrows(BadRequestException.class,
                 () -> bookingService.create(userDto.getId(), bookingInDtoWithSameStartDate));
     }
 
     @Test
     void approvedByOwnerTest() {
-        when(bookingStorage.save(any(Booking.class))).thenReturn(bookingWaiting);
-        when(bookingStorage.findById(anyLong())).thenReturn(Optional.of(bookingWaiting));
+        when(bookingRepository.save(any(Booking.class))).thenReturn(bookingWaiting);
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(bookingWaiting));
 
         BookingOutDto approvedBooking = bookingService.approveOrReject(2L, 1L, true);
 
@@ -217,7 +239,7 @@ public class BookingServiceImplTest {
 
     @Test
     void approvedByOwnerBookingWithStatusApprovedTest() {
-        when(bookingStorage.findById(anyLong())).thenReturn(Optional.of(booking));
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
 
         Assertions.assertThrows(BadRequestException.class,
                 () -> bookingService.approveOrReject(2L, 1L, true));
@@ -225,7 +247,7 @@ public class BookingServiceImplTest {
 
     @Test
     void approvedByOwnerWithoutItemTest() {
-        when(bookingStorage.findById(anyLong())).thenReturn(Optional.of(booking));
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
 
         Assertions.assertThrows(NotFoundException.class,
                 () -> bookingService.approveOrReject(1L, 1L, true));
@@ -233,7 +255,7 @@ public class BookingServiceImplTest {
 
     @Test
     void getBookingByIdTest() {
-        when(bookingStorage.findById(anyLong())).thenReturn(Optional.of(booking));
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
 
         BookingOutDto bookingOutput = bookingService.getById(1L, 1L);
 
@@ -254,8 +276,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllByBookerTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getBookingsByBookerIdOrderByStartDesc(1L, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getBookingsByBookerIdOrderByStartDesc(1L, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookings = bookingService.getAllByBooker(1L, State.ALL, 0, 1);
@@ -265,10 +287,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllCurrentByBookerTest() {
-        LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getCurrentBookingsByBooker(1L, currentTime, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getCurrentBookingsByBooker(1L, currentTime, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByBooker(1L, State.CURRENT, 0, 1);
@@ -278,10 +298,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllWaitingByBookerTest() {
-        LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getWaitingBookingsByBooker(1L, currentTime, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getWaitingBookingsByBooker(1L, currentTime, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByBooker(1L, State.WAITING, 0, 1);
@@ -291,10 +309,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllPastByBookerTest() {
-        LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getPastBookingsByBooker(1L, currentTime, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getPastBookingsByBooker(1L, currentTime, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByBooker(1L, State.PAST, 0, 1);
@@ -304,10 +320,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllFutureByBookerTest() {
-        LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getFutureBookingsByBooker(1L, currentTime, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getFutureBookingsByBooker(1L, currentTime, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByBooker(1L, State.FUTURE, 0, 1);
@@ -317,8 +331,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllRejectedByBookerTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getRejectedBookingsByBooker(1L, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getRejectedBookingsByBooker(1L, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByBooker(1L, State.REJECTED, 0, 1);
@@ -328,8 +342,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllByOwnerTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getAllBookingsByOwner(1L, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getAllBookingsByOwner(1L, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookings = bookingService.getAllByOwner(1L, State.ALL, 0, 1);
@@ -339,10 +353,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllCurrentByOwnerTest() {
-        LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getCurrentBookingsByOwner(1L, currentTime, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getCurrentBookingsByOwner(1L, currentTime, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByOwner(1L, State.CURRENT, 0, 1);
@@ -352,10 +364,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllWaitingByOwnerTest() {
-        LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getWaitingBookingsByOwner(1L, currentTime, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getWaitingBookingsByOwner(1L, currentTime, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByOwner(1L, State.WAITING, 0, 1);
@@ -365,10 +375,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllPastByOwnerTest() {
-        LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getPastBookingsByOwner(1L, currentTime, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getPastBookingsByOwner(1L, currentTime, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByOwner(1L, State.PAST, 0, 1);
@@ -378,10 +386,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllFutureByOwnerTest() {
-        LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getFutureBookingsByOwner(1L, currentTime, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getFutureBookingsByOwner(1L, currentTime, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByOwner(1L, State.FUTURE, 0, 1);
@@ -391,8 +397,8 @@ public class BookingServiceImplTest {
 
     @Test
     void findAllRejectedByOwnerTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingStorage.getRejectedBookingsByOwner(1L, PageRequest.of(0, 1)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.getRejectedBookingsByOwner(1L, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
         List<BookingOutDto> bookingsCurrent = bookingService.getAllByOwner(1L, State.REJECTED, 0, 1);

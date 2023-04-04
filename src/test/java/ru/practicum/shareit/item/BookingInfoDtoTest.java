@@ -23,7 +23,7 @@ public class BookingInfoDtoTest {
     private BookingInfoDto bookerInfoDto = null;
 
     @BeforeEach
-    public void setup() {
+    public void initVarsForTests() {
         bookerInfoDto = new BookingInfoDto(
                 4L,
                 5L,

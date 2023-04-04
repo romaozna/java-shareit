@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,66 +39,80 @@ public class ItemServiceIntegrationTest {
     @Autowired
     private BookingService bookingService;
 
+    private LocalDateTime now;
+    private UserDto userDto;
+    private ItemDto itemDto;
+    private ItemDto itemDto2;
+    private UserDto userDto2;
+    private ItemDto itemDtoToRequest;
+    private ItemRequestDto requestDto;
+    private BookingInDto bookingInDto;
+    private CommentDto commentDto;
 
-    private final UserDto userDto = new UserDto(
-            null,
-            "Roman",
-            "roman@mail.com");
+    @BeforeEach
+    public void initVarsForTests() {
+        now = LocalDateTime.now();
 
-    private final ItemDto itemDto = new ItemDto(
-            null,
-            "Brush",
-            "Brush for wash",
-            true,
-            null,
-            null,
-            new ArrayList<>(),
-            null);
+        userDto = new UserDto(
+                null,
+                "Roman",
+                "roman@mail.com");
 
-    private final ItemDto itemDto2 = new ItemDto(
-            null,
-            "Brush",
-            "Brush for trash",
-            true,
-            null,
-            null,
-            new ArrayList<>(),
-            null);
+        itemDto = new ItemDto(
+                null,
+                "Brush",
+                "Brush for wash",
+                true,
+                null,
+                null,
+                new ArrayList<>(),
+                null);
 
-    private final UserDto userDto2 = new UserDto(
-            null,
-            "Max",
-            "max@mail.com");
+        itemDto2 = new ItemDto(
+                null,
+                "Brush",
+                "Brush for trash",
+                true,
+                null,
+                null,
+                new ArrayList<>(),
+                null);
 
-    private final ItemDto itemDtoToRequest = new ItemDto(
-            null,
-            "Brush",
-            "Brush for stash",
-            true,
-            null,
-            null,
-            new ArrayList<>(),
-            1L);
+        userDto2 = new UserDto(
+                null,
+                "Max",
+                "max@mail.com");
 
-    private final ItemRequestDto requestDto = new ItemRequestDto(
-            1L,
-            "request",
-            null,
-            null);
+        itemDtoToRequest = new ItemDto(
+                null,
+                "Brush",
+                "Brush for stash",
+                true,
+                null,
+                null,
+                new ArrayList<>(),
+                1L);
 
-    private final BookingInDto bookingInDto = new BookingInDto(
-            1L,
-            LocalDateTime.now().plusMinutes(3),
-            LocalDateTime.now().plusMinutes(5));
+        requestDto = new ItemRequestDto(
+                1L,
+                "request",
+                null,
+                null);
 
-    private final CommentDto commentDto = new CommentDto(
-            null,
-            "Akuna-matata",
-            null,
-            null);
+        bookingInDto = new BookingInDto(
+                1L,
+                now.plusMinutes(3),
+                now.plusMinutes(5));
+
+        commentDto = new CommentDto(
+                null,
+                "Akuna-matata",
+                null,
+                null);
+    }
 
     @Test
-    void createItem() {
+    void createItemTest() {
         UserDto createdUser = userService.create(userDto);
         ItemDto createdItem = itemService.create(createdUser.getId(), itemDto);
 
@@ -107,7 +122,7 @@ public class ItemServiceIntegrationTest {
     }
 
     @Test
-    void addItemToRequest() {
+    void addItemToRequestTest() {
         UserDto createdUser = userService.create(userDto);
         requestService.create(createdUser.getId(), requestDto);
 
@@ -119,7 +134,7 @@ public class ItemServiceIntegrationTest {
     }
 
     @Test
-    void addComment() {
+    void addCommentTest() {
 
         UserDto createdUser1 = userService.create(userDto);
         UserDto createdUser2 = userService.create(userDto2);
@@ -130,14 +145,14 @@ public class ItemServiceIntegrationTest {
                 .approveOrReject(createdUser2.getId(), bookingOutDto1.getId(), true);
 
         CommentDto createdComment = itemService.createComment(commentDto, createdUser1.getId(),
-                createdItem.getId(), LocalDateTime.now().plusMinutes(10));
+                createdItem.getId(), now.plusMinutes(10));
 
         Assertions.assertEquals(1L, createdComment.getId());
         Assertions.assertEquals(commentDto.getText(), createdComment.getText());
     }
 
     @Test
-    void getItemByWrongItemId() {
+    void getItemByWrongItemIdTest() {
         Long id = 2L;
 
         Assertions

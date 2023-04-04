@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -10,9 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.dto.UserDto;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,27 +36,40 @@ public class ItemControllerTest {
     @Autowired
     private MockMvc mvc;
 
-    private final ItemDto itemDto = new ItemDto(
-            1L,
-            " Brush",
-            "Best brush",
-            true,
-            null,
-            null,
-            new ArrayList<>(),
-            1L);
+    private ItemDto itemDto;
+    private CommentDto commentDto;
 
-    private final UserDto userDto = new UserDto(
-            1L,
-            "Roman",
-            "roman@mail.com");
+    public static final String STANDARD_CHARSET = "StandardCharsets.UTF_8";
+    public static final String SHARER_USER_ID = "X-Sharer-User-Id";
+    public static final String ITEM_ID = "$.id";
+    public static final String ITEM_NAME = "$.name";
+    public static final String ITEM_DESCRIPTION = "$.description";
+    public static final String ITEM_AVAILABLE = "$.available";
+    public static final String LAST_BOOKING = "$.lastBooking";
+    public static final String NEXT_BOOKING = "$.nextBooking";
+    public static final String COMMENTS = "$.comments";
+    public static final String REQUEST_ID = "$.requestId";
 
-    private final CommentDto commentDto = new CommentDto(
-            1L,
-            "Cowabunga!",
-            "Roman",
-            LocalDateTime.now()
-                    .withNano(0));
+    @BeforeEach
+    public void initVarsForTests() {
+
+        itemDto = new ItemDto(
+                1L,
+                " Brush",
+                "Best brush",
+                true,
+                null,
+                null,
+                new ArrayList<>(),
+                1L);
+
+        commentDto = new CommentDto(
+                1L,
+                "Cowabunga!",
+                "Roman",
+                LocalDateTime.now()
+                        .withNano(0));
+    }
 
     @Test
     void createNewItemTest() throws Exception {
@@ -65,18 +77,18 @@ public class ItemControllerTest {
 
         mvc.perform(post("/items")
                         .content(mapper.writeValueAsString(itemDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(itemDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(itemDto.getName())))
-                .andExpect(jsonPath("$.description", is(itemDto.getDescription())))
-                .andExpect(jsonPath("$.available", is(itemDto.getAvailable())))
-                .andExpect(jsonPath("$.lastBooking", is(itemDto.getLastBooking())))
-                .andExpect(jsonPath("$.nextBooking", is(itemDto.getNextBooking())))
-                .andExpect(jsonPath("$.comments", hasSize(0)))
-                .andExpect(jsonPath("$.requestId", is(itemDto.getRequestId()), Long.class));
+                .andExpect(jsonPath(ITEM_ID, is(itemDto.getId()), Long.class))
+                .andExpect(jsonPath(ITEM_NAME, is(itemDto.getName())))
+                .andExpect(jsonPath(ITEM_DESCRIPTION, is(itemDto.getDescription())))
+                .andExpect(jsonPath(ITEM_AVAILABLE, is(itemDto.getAvailable())))
+                .andExpect(jsonPath(LAST_BOOKING, is(itemDto.getLastBooking())))
+                .andExpect(jsonPath(NEXT_BOOKING, is(itemDto.getNextBooking())))
+                .andExpect(jsonPath(COMMENTS, hasSize(0)))
+                .andExpect(jsonPath(REQUEST_ID, is(itemDto.getRequestId()), Long.class));
     }
 
     @Test
@@ -84,9 +96,9 @@ public class ItemControllerTest {
         when(itemService.getUserItems(any(), anyInt(), anyInt())).thenReturn(List.of(itemDto));
 
         mvc.perform(get("/items")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("from", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
@@ -109,9 +121,9 @@ public class ItemControllerTest {
 
         mvc.perform(post("/items/{id}/comment", "1")
                         .content(mapper.writeValueAsString(commentDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(commentDto.getId()), Long.class))
                 .andExpect(jsonPath("$.text", is(commentDto.getText())))
@@ -124,18 +136,18 @@ public class ItemControllerTest {
         when(itemService.getById(any(), any())).thenReturn(itemDto);
 
         mvc.perform(get("/items/{id}", "1")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(itemDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(itemDto.getName())))
-                .andExpect(jsonPath("$.description", is(itemDto.getDescription())))
-                .andExpect(jsonPath("$.available", is(itemDto.getAvailable())))
-                .andExpect(jsonPath("$.lastBooking", is(itemDto.getLastBooking())))
-                .andExpect(jsonPath("$.nextBooking", is(itemDto.getNextBooking())))
-                .andExpect(jsonPath("$.comments", hasSize(0)))
-                .andExpect(jsonPath("$.requestId", is(itemDto.getRequestId()), Long.class));
+                .andExpect(jsonPath(ITEM_ID, is(itemDto.getId()), Long.class))
+                .andExpect(jsonPath(ITEM_NAME, is(itemDto.getName())))
+                .andExpect(jsonPath(ITEM_DESCRIPTION, is(itemDto.getDescription())))
+                .andExpect(jsonPath(ITEM_AVAILABLE, is(itemDto.getAvailable())))
+                .andExpect(jsonPath(LAST_BOOKING, is(itemDto.getLastBooking())))
+                .andExpect(jsonPath(NEXT_BOOKING, is(itemDto.getNextBooking())))
+                .andExpect(jsonPath(COMMENTS, hasSize(0)))
+                .andExpect(jsonPath(REQUEST_ID, is(itemDto.getRequestId()), Long.class));
     }
 
     @Test
@@ -143,9 +155,9 @@ public class ItemControllerTest {
         when(itemService.searchItem(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(List.of(itemDto));
 
         mvc.perform(get("/items/search")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("text", "text")
                         .param("from", "0")
                         .param("size", "10"))
@@ -166,9 +178,9 @@ public class ItemControllerTest {
         when(itemService.searchItem(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(List.of(itemDto));
 
         mvc.perform(get("/items/search")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1")
+                        .header(SHARER_USER_ID, "1")
                         .param("text", "")
                         .param("from", "0")
                         .param("size", "10"))
@@ -182,17 +194,17 @@ public class ItemControllerTest {
 
         mvc.perform(patch("/items/{id}", "1")
                         .content(mapper.writeValueAsString(itemDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(SHARER_USER_ID, "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(itemDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(itemDto.getName())))
-                .andExpect(jsonPath("$.description", is(itemDto.getDescription())))
-                .andExpect(jsonPath("$.available", is(itemDto.getAvailable())))
-                .andExpect(jsonPath("$.lastBooking", is(itemDto.getLastBooking())))
-                .andExpect(jsonPath("$.nextBooking", is(itemDto.getNextBooking())))
-                .andExpect(jsonPath("$.comments", hasSize(0)))
-                .andExpect(jsonPath("$.requestId", is(itemDto.getRequestId()), Long.class));
+                .andExpect(jsonPath(ITEM_ID, is(itemDto.getId()), Long.class))
+                .andExpect(jsonPath(ITEM_NAME, is(itemDto.getName())))
+                .andExpect(jsonPath(ITEM_DESCRIPTION, is(itemDto.getDescription())))
+                .andExpect(jsonPath(ITEM_AVAILABLE, is(itemDto.getAvailable())))
+                .andExpect(jsonPath(LAST_BOOKING, is(itemDto.getLastBooking())))
+                .andExpect(jsonPath(NEXT_BOOKING, is(itemDto.getNextBooking())))
+                .andExpect(jsonPath(COMMENTS, hasSize(0)))
+                .andExpect(jsonPath(REQUEST_ID, is(itemDto.getRequestId()), Long.class));
     }
 }

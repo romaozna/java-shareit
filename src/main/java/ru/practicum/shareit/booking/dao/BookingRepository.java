@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BookingStorage extends JpaRepository<Booking, Long> {
+public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> getBookingsByBookerIdOrderByStartDesc(Long bookerId, Pageable pageable);
 

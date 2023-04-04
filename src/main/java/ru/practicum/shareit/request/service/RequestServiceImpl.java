@@ -5,11 +5,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.request.dao.RequestStorage;
+import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.user.dao.UserStorage;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 
@@ -23,34 +23,34 @@ import static ru.practicum.shareit.request.dto.ItemRequestMapper.toRequestDto;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class RequestServiceImpl implements RequestService {
-    private final RequestStorage requestStorage;
-    private final UserStorage userStorage;
+    private final RequestRepository requestRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public ItemRequestDto create(Long userId, ItemRequestDto requestDto) {
         validateUserByIdOrException(userId);
         ItemRequest request = toRequest(requestDto, userId);
-        return toRequestDto(requestStorage.save(request));
+        return toRequestDto(requestRepository.save(request));
     }
 
     @Override
     public List<ItemRequestDto> getAllUserRequests(Long userId) {
         validateUserByIdOrException(userId);
-        return mapToDto(requestStorage.findAllByRequesterIdOrderByCreatedAsc(userId));
+        return mapToDto(requestRepository.findAllByRequesterIdOrderByCreatedAsc(userId));
     }
 
     @Override
     public ItemRequestDto getRequestById(Long userId, Long requestId) {
         validateUserByIdOrException(userId);
-        return toRequestDto(requestStorage.findById(requestId).orElseThrow(() ->
+        return toRequestDto(requestRepository.findById(requestId).orElseThrow(() ->
                 new NotFoundException("Request id=" + requestId + " not found!")));
     }
 
     @Override
     public List<ItemRequestDto> getAllRequests(Long userId, Integer from, Integer size) {
         validateUserByIdOrException(userId);
-        return mapToDto(requestStorage
+        return mapToDto(requestRepository
                 .findAllByRequesterIdNotOrderByCreatedAsc(userId, PageRequest.of(from / size, size)));
     }
 
@@ -61,7 +61,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     private User validateUserByIdOrException(Long userId) {
-        return userStorage.findById(userId).orElseThrow(() ->
+        return userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException("User id=" + userId + " not found!"));
     }
 }

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -10,7 +11,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -34,10 +34,19 @@ class UserControllerTest {
     @Autowired
     private MockMvc mvc;
 
-    private final UserDto userDto = new UserDto(
-            1L,
-            "Roman",
-            "roman@mail.com");
+    public static final String STANDARD_CHARSET = "StandardCharsets.UTF_8";
+    public static final String USER_ID = "$.id";
+    public static final String USER_NAME = "$.name";
+    public static final String USER_EMAIL = "$.email";
+    private UserDto userDto;
+
+    @BeforeEach
+    public void initVarsForTests() {
+        userDto = new UserDto(
+                1L,
+                "Roman",
+                "roman@mail.com");
+    }
 
     @Test
     void createUserTest() throws Exception {
@@ -46,13 +55,13 @@ class UserControllerTest {
 
         mvc.perform(post("/users")
                         .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(userDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(userDto.getName())))
-                .andExpect(jsonPath("$.email", is(userDto.getEmail())));
+                .andExpect(jsonPath(USER_ID, is(userDto.getId()), Long.class))
+                .andExpect(jsonPath(USER_NAME, is(userDto.getName())))
+                .andExpect(jsonPath(USER_EMAIL, is(userDto.getEmail())));
     }
 
     @Test
@@ -60,12 +69,12 @@ class UserControllerTest {
         when(userService.getById(any())).thenReturn(userDto);
 
         mvc.perform(get("/users/{id}", "1")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(userDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(userDto.getName())))
-                .andExpect(jsonPath("$.email", is(userDto.getEmail())));
+                .andExpect(jsonPath(USER_ID, is(userDto.getId()), Long.class))
+                .andExpect(jsonPath(USER_NAME, is(userDto.getName())))
+                .andExpect(jsonPath(USER_EMAIL, is(userDto.getEmail())));
     }
 
     @Test
@@ -74,12 +83,12 @@ class UserControllerTest {
 
         mvc.perform(patch("/users/{id}", "1")
                         .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(userDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(userDto.getName())))
-                .andExpect(jsonPath("$.email", is(userDto.getEmail())));
+                .andExpect(jsonPath(USER_ID, is(userDto.getId()), Long.class))
+                .andExpect(jsonPath(USER_NAME, is(userDto.getName())))
+                .andExpect(jsonPath(USER_EMAIL, is(userDto.getEmail())));
     }
 
     @Test
@@ -89,7 +98,7 @@ class UserControllerTest {
         when(userService.getAll()).thenReturn(users);
 
         mvc.perform(get("/users")
-                        .characterEncoding(StandardCharsets.UTF_8)
+                        .characterEncoding(STANDARD_CHARSET)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -102,7 +111,7 @@ class UserControllerTest {
     @Test
     void deleteUserTest() throws Exception {
         mvc.perform(delete("/users/{id}", "1")
-                        .characterEncoding(StandardCharsets.UTF_8))
+                        .characterEncoding(STANDARD_CHARSET))
                 .andExpect(status().isNoContent());
     }
 }

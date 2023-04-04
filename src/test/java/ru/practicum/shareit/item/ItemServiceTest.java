@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,16 +11,16 @@ import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.dto.BookingOutDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.booking.dao.BookingStorage;
+import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.dao.CommentStorage;
-import ru.practicum.shareit.item.dao.ItemStorage;
+import ru.practicum.shareit.item.dao.CommentRepository;
+import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.service.ItemServiceImpl;
-import ru.practicum.shareit.user.dao.UserStorage;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
@@ -38,90 +39,104 @@ public class ItemServiceTest {
     private ItemServiceImpl itemService;
 
     @Mock
-    private ItemStorage itemStorage;
+    private ItemRepository itemRepository;
 
     @Mock
-    private UserStorage userStorage;
+    private UserRepository userRepository;
 
     @Mock
-    private CommentStorage commentStorage;
+    private CommentRepository commentRepository;
 
     @Mock
-    private BookingStorage bookingStorage;
+    private BookingRepository bookingRepository;
 
-    private final UserDto userDto = new UserDto(
-            1L,
-            "Roman",
-            "roman@mail.com");
+    private UserDto userDto;
+    private User user;
+    private Item item;
+    private Comment comment;
+    private CommentDto commentDto;
+    private ItemDto itemDto;
+    private ItemDto updatedItemDto;
+    private Booking booking;
+    private BookingOutDto bookingOutDto;
 
-    private final User user = new User(
-            1L,
-            "Roman",
-            "roman@mail.com");
+    @BeforeEach
+    public void initVarsForTests() {
+        LocalDateTime now = LocalDateTime.now();
 
-    private final Item item = new Item(
-            1L,
-            "Brush",
-            "Best brush",
-            true,
-            user,
-            null);
+        userDto = new UserDto(
+                1L,
+                "Roman",
+                "roman@mail.com");
 
-    private final Comment comment = new Comment(
-            1L,
-            "Great!",
-            item,
-            user,
-            LocalDateTime.now());
+        user = new User(
+                1L,
+                "Roman",
+                "roman@mail.com");
 
-    private final CommentDto commentDto = new CommentDto(
-            null,
-            "Great!",
-            "Roman",
-            LocalDateTime.now());
+        item = new Item(
+                1L,
+                "Brush",
+                "Best brush",
+                true,
+                user,
+                null);
 
-    private final ItemDto itemDto = new ItemDto(
-            1L,
-            "Brush",
-            "Best brush",
-            true,
-            null,
-            null,
-            new ArrayList<>(),
-            null);
+        comment = new Comment(
+                1L,
+                "Great!",
+                item,
+                user,
+                now);
 
-    private final ItemDto updatedItemDto = new ItemDto(
-            1L,
-            "Updated brush",
-            "Brush with wash",
-            true,
-            null,
-            null,
-            new ArrayList<>(),
-            null);
+        commentDto = new CommentDto(
+                null,
+                "Great!",
+                "Roman",
+                now);
+
+        itemDto = new ItemDto(
+                1L,
+                "Brush",
+                "Best brush",
+                true,
+                null,
+                null,
+                new ArrayList<>(),
+                null);
+
+        updatedItemDto = new ItemDto(
+                1L,
+                "Updated brush",
+                "Brush with wash",
+                true,
+                null,
+                null,
+                new ArrayList<>(),
+                null);
 
 
-    private final Booking booking = new Booking(
-            1L,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
-            item,
-            user,
-            Status.WAITING);
+        booking = new Booking(
+                1L,
+                now,
+                now,
+                item,
+                user,
+                Status.WAITING);
 
-    private final BookingOutDto bookingOutDto = new BookingOutDto(
-            1L,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
-            Status.WAITING.name(),
-            userDto,
-            itemDto);
-
+        bookingOutDto = new BookingOutDto(
+                1L,
+                now,
+                now,
+                Status.WAITING.name(),
+                userDto,
+                itemDto);
+    }
 
     @Test
     void createItemTest() {
-        when(itemStorage.save(any(Item.class))).thenReturn(item);
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.save(any(Item.class))).thenReturn(item);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
 
         ItemDto createdItem = itemService.create(userDto.getId(), itemDto);
 
@@ -135,15 +150,15 @@ public class ItemServiceTest {
         Assertions.assertEquals(itemDto.getComments().size(), createdItem.getComments().size());
         Assertions.assertEquals(itemDto.getRequestId(), createdItem.getRequestId());
 
-        verify(itemStorage, times(1)).save(any(Item.class));
-        verifyNoMoreInteractions(itemStorage);
+        verify(itemRepository, times(1)).save(any(Item.class));
+        verifyNoMoreInteractions(itemRepository);
     }
 
     @Test
     void getByItemIdTest() {
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(item));
-        when(bookingStorage.getLastBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
-        when(bookingStorage.getNextBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(bookingRepository.getLastBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
+        when(bookingRepository.getNextBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
 
         ItemDto itemById = itemService.getById(1L, 1L);
 
@@ -157,16 +172,16 @@ public class ItemServiceTest {
         Assertions.assertEquals(0, itemById.getComments().size());
         Assertions.assertEquals(itemDto.getRequestId(), itemById.getRequestId());
 
-        verify(itemStorage, times(1)).findById(anyLong());
-        verifyNoMoreInteractions(itemStorage);
-        verify(bookingStorage, times(1)).getLastBooking(anyLong(), any(LocalDateTime.class));
-        verify(bookingStorage, times(1)).getNextBooking(anyLong(), any(LocalDateTime.class));
-        verifyNoMoreInteractions(bookingStorage);
+        verify(itemRepository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(itemRepository);
+        verify(bookingRepository, times(1)).getLastBooking(anyLong(), any(LocalDateTime.class));
+        verify(bookingRepository, times(1)).getNextBooking(anyLong(), any(LocalDateTime.class));
+        verifyNoMoreInteractions(bookingRepository);
     }
 
     @Test
     void getByItemIdWithoutBookingsTest() {
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(item));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
 
         ItemDto itemById = itemService.getById(1L, 2L);
 
@@ -180,15 +195,15 @@ public class ItemServiceTest {
         Assertions.assertEquals(0, itemById.getComments().size());
         Assertions.assertEquals(itemDto.getRequestId(), itemById.getRequestId());
 
-        verify(itemStorage, times(1)).findById(anyLong());
-        verifyNoMoreInteractions(itemStorage);
+        verify(itemRepository, times(1)).findById(anyLong());
+        verifyNoMoreInteractions(itemRepository);
     }
 
     @Test
     void getUserItemsTest() {
-        when(itemStorage.findAllByOwnerIdOrderByIdAsc(anyLong(), any(Pageable.class))).thenReturn(List.of(item));
-        when(bookingStorage.getLastBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
-        when(bookingStorage.getNextBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
+        when(itemRepository.findAllByOwnerIdOrderByIdAsc(anyLong(), any(Pageable.class))).thenReturn(List.of(item));
+        when(bookingRepository.getLastBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
+        when(bookingRepository.getNextBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
 
         List<ItemDto> items = itemService.getUserItems(1L, 0, 1);
 
@@ -202,16 +217,16 @@ public class ItemServiceTest {
         Assertions.assertEquals(0, items.get(0).getComments().size());
         Assertions.assertEquals(itemDto.getRequestId(), items.get(0).getRequestId());
 
-        verify(itemStorage, times(1)).findAllByOwnerIdOrderByIdAsc(anyLong(), any(Pageable.class));
-        verifyNoMoreInteractions(itemStorage);
-        verify(bookingStorage, times(1)).getLastBooking(anyLong(), any(LocalDateTime.class));
-        verify(bookingStorage, times(1)).getNextBooking(anyLong(), any(LocalDateTime.class));
-        verifyNoMoreInteractions(bookingStorage);
+        verify(itemRepository, times(1)).findAllByOwnerIdOrderByIdAsc(anyLong(), any(Pageable.class));
+        verifyNoMoreInteractions(itemRepository);
+        verify(bookingRepository, times(1)).getLastBooking(anyLong(), any(LocalDateTime.class));
+        verify(bookingRepository, times(1)).getNextBooking(anyLong(), any(LocalDateTime.class));
+        verifyNoMoreInteractions(bookingRepository);
     }
 
     @Test
     void searchItemTest() {
-        when(itemStorage.search(anyString(), any(Pageable.class))).thenReturn(List.of(item));
+        when(itemRepository.search(anyString(), any(Pageable.class))).thenReturn(List.of(item));
 
         List<ItemDto> items = itemService.searchItem(1L,"Best", 0, 1);
 
@@ -223,9 +238,9 @@ public class ItemServiceTest {
         Assertions.assertEquals(0, items.get(0).getComments().size());
         Assertions.assertEquals(itemDto.getRequestId(), items.get(0).getRequestId());
 
-        verify(itemStorage, times(1)).search(anyString(), any(Pageable.class));
-        verifyNoMoreInteractions(itemStorage);
-        verifyNoMoreInteractions(bookingStorage);
+        verify(itemRepository, times(1)).search(anyString(), any(Pageable.class));
+        verifyNoMoreInteractions(itemRepository);
+        verifyNoMoreInteractions(bookingRepository);
     }
 
     @Test
@@ -236,7 +251,7 @@ public class ItemServiceTest {
     }
 
     @Test
-    void updateItem() {
+    void updateItemTest() {
         final Item newItem = new Item(
                 1L,
                 "Updated brush",
@@ -245,9 +260,9 @@ public class ItemServiceTest {
                 user,
                 null);
 
-        when(itemStorage.getReferenceById(anyLong())).thenReturn(item);
-        when(bookingStorage.getLastBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
-        when(bookingStorage.getNextBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
+        when(itemRepository.getReferenceById(anyLong())).thenReturn(item);
+        when(bookingRepository.getLastBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
+        when(bookingRepository.getNextBooking(anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
 
         ItemDto updatedItem = itemService.update(userDto.getId(), updatedItemDto, 1L);
 
@@ -259,11 +274,11 @@ public class ItemServiceTest {
         Assertions.assertEquals(bookingOutDto.getId(), updatedItem.getLastBooking().getId());
         Assertions.assertEquals(bookingOutDto.getId(), updatedItem.getNextBooking().getId());
         Assertions.assertEquals(updatedItemDto.getRequestId(), updatedItem.getRequestId());
-        verify(itemStorage, times(1)).getReferenceById(anyLong());
-        verifyNoMoreInteractions(itemStorage);
-        verify(bookingStorage, times(1)).getLastBooking(anyLong(), any(LocalDateTime.class));
-        verify(bookingStorage, times(1)).getNextBooking(anyLong(), any(LocalDateTime.class));
-        verifyNoMoreInteractions(bookingStorage);
+        verify(itemRepository, times(1)).getReferenceById(anyLong());
+        verifyNoMoreInteractions(itemRepository);
+        verify(bookingRepository, times(1)).getLastBooking(anyLong(), any(LocalDateTime.class));
+        verify(bookingRepository, times(1)).getNextBooking(anyLong(), any(LocalDateTime.class));
+        verifyNoMoreInteractions(bookingRepository);
 
     }
 
@@ -271,7 +286,7 @@ public class ItemServiceTest {
     void updateWithNotFoundItemTest() {
         Long itemId = 1L;
 
-        when(itemStorage.getReferenceById(anyLong())).thenReturn(null);
+        when(itemRepository.getReferenceById(anyLong())).thenReturn(null);
 
         Assertions.assertThrows(NullPointerException.class,
                 () -> itemService.update(userDto.getId(), itemDto, itemId));
@@ -279,11 +294,11 @@ public class ItemServiceTest {
 
     @Test
     void createCommentTest() {
-        when(bookingStorage.getAllPastAndApprovedUserBooking(anyLong(), anyLong(), any(LocalDateTime.class)))
+        when(bookingRepository.getAllPastAndApprovedUserBooking(anyLong(), anyLong(), any(LocalDateTime.class)))
                 .thenReturn(List.of(booking));
-        when(commentStorage.save(any(Comment.class))).thenReturn(comment);
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(item));
+        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
 
         CommentDto createdComment = itemService.createComment(commentDto, userDto.getId(), itemDto.getId(), LocalDateTime.now());
 
@@ -293,18 +308,18 @@ public class ItemServiceTest {
         Assertions.assertEquals(comment.getCreated().toString(), createdComment.getCreated().toString());
         Assertions.assertEquals(comment.getAuthor().getName(), createdComment.getAuthorName());
 
-        verify(bookingStorage, times(1))
+        verify(bookingRepository, times(1))
                 .getAllPastAndApprovedUserBooking(anyLong(), anyLong(), any(LocalDateTime.class));
-        verifyNoMoreInteractions(bookingStorage);
-        verify(commentStorage, times(1)).save(any(Comment.class));
-        verifyNoMoreInteractions(commentStorage);
+        verifyNoMoreInteractions(bookingRepository);
+        verify(commentRepository, times(1)).save(any(Comment.class));
+        verifyNoMoreInteractions(commentRepository);
     }
 
     @Test
     void createCommentWithEmptyBookingsTest() {
-        when(userStorage.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemStorage.findById(anyLong())).thenReturn(Optional.of(item));
-        when(bookingStorage.getAllPastAndApprovedUserBooking(anyLong(), anyLong(), any(LocalDateTime.class)))
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(bookingRepository.getAllPastAndApprovedUserBooking(anyLong(), anyLong(), any(LocalDateTime.class)))
                 .thenReturn(Collections.emptyList());
 
         Assertions.assertThrows(BadRequestException.class,

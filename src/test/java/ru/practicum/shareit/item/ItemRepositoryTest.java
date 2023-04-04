@@ -8,7 +8,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
-import ru.practicum.shareit.item.dao.ItemStorage;
+import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
@@ -19,44 +19,47 @@ import java.util.List;
 
 @DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class ItemStorageTest {
+public class ItemRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Autowired
-    private ItemStorage itemStorage;
+    private ItemRepository itemRepository;
 
-    private final User user = new User(
-            null,
-            "Roman",
-            "roman@mail.com");
-
-    private final Item item = new Item(
-            null,
-            "Brush",
-            "Brush for wash",
-            true,
-            user,
-            1L);
-
-    private final ItemRequest request = new ItemRequest(
-            null,
-            "request",
-            1L,
-            LocalDateTime.now(),
-            new ArrayList<>());
+    private User user;
+    private Item item;
 
     @BeforeEach
-    void setup() {
+    void initVarsForTests() {
+        ItemRequest request = new ItemRequest(
+                null,
+                "request",
+                1L,
+                LocalDateTime.now(),
+                new ArrayList<>());
+
+        user = new User(
+                null,
+                "Roman",
+                "roman@mail.com");
+
+        item = new Item(
+                null,
+                "Brush",
+                "Brush for wash",
+                true,
+                user,
+                1L);
+
         entityManager.persist(user);
         entityManager.persist(request);
         entityManager.flush();
     }
 
     @Test
-    void createItem() {
-        Item found = itemStorage.save(item);
+    void createItemTest() {
+        Item found = itemRepository.save(item);
 
         Assertions.assertNotNull(found);
         Assertions.assertEquals(1L, found.getId());
@@ -69,11 +72,11 @@ public class ItemStorageTest {
     }
 
     @Test
-    void findItemById() {
+    void findItemByIdTest() {
         entityManager.persist(item);
         entityManager.flush();
 
-        Item found = itemStorage.findById(1L).orElse(null);
+        Item found = itemRepository.findById(1L).orElse(null);
 
         Assertions.assertNotNull(found);
         Assertions.assertEquals(1L, found.getId());
@@ -86,11 +89,11 @@ public class ItemStorageTest {
     }
 
     @Test
-    void findAllByOwnerIdOrderByIdAsc() {
+    void findAllByOwnerIdOrderByIdAscTest() {
         entityManager.persist(item);
         entityManager.flush();
 
-        List<Item> found = itemStorage.findAllByOwnerIdOrderByIdAsc(1L, PageRequest.of(0, 1));
+        List<Item> found = itemRepository.findAllByOwnerIdOrderByIdAsc(1L, PageRequest.of(0, 1));
 
         Assertions.assertNotNull(found);
         Assertions.assertEquals(1, found.size());
@@ -104,11 +107,11 @@ public class ItemStorageTest {
     }
 
     @Test
-    void search() {
+    void searchTest() {
         entityManager.persist(item);
         entityManager.flush();
 
-        List<Item> found = itemStorage.search("Brush for wash", PageRequest.of(0, 1));
+        List<Item> found = itemRepository.search("Brush for wash", PageRequest.of(0, 1));
 
         Assertions.assertNotNull(found);
         Assertions.assertEquals(1, found.size());
