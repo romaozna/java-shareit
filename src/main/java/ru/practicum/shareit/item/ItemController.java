@@ -10,6 +10,8 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
+import javax.validation.constraints.Min;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,44 +19,52 @@ import java.util.List;
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
-    private final String userIdFromHeader = "X-Sharer-User-Id";
+    public static final String USER_ID_FROM_HEADER = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @GetMapping("{id}")
-    public ItemDto getById(@RequestHeader(userIdFromHeader) Long userId,
+    public ItemDto getById(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
                            @PathVariable Long id) {
         return itemService.getById(userId, id);
     }
 
     @GetMapping
-    public List<ItemDto> getUserItems(@RequestHeader(userIdFromHeader) Long userId) {
-        return itemService.getUserItems(userId);
+    public List<ItemDto> getUserItems(
+            @RequestHeader(USER_ID_FROM_HEADER) Long userId,
+            @RequestParam(required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(required = false, defaultValue = "10") @Min(1) Integer size) {
+
+        return itemService.getUserItems(userId, from, size);
     }
 
     @PostMapping
-    public ItemDto create(@RequestHeader(userIdFromHeader) Long userId,
+    public ItemDto create(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
                           @RequestBody @Validated(Create.class) ItemDto itemDto) {
         return itemService.create(userId, itemDto);
     }
 
     @PatchMapping("{id}")
-    public ItemDto update(@RequestHeader(userIdFromHeader) Long userId,
+    public ItemDto update(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
                           @RequestBody @Validated(Update.class) ItemDto itemDto, @PathVariable Long id) {
         return itemService.update(userId, itemDto, id);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestHeader(userIdFromHeader) Long userId,
-                                    @RequestParam(name = "text") String request) {
-        return request.isBlank() ? Collections.emptyList() : itemService.searchItem(userId, request);
+    public List<ItemDto> searchItem(
+            @RequestHeader(USER_ID_FROM_HEADER) Long userId,
+            @RequestParam(name = "text") String request,
+            @RequestParam(required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(required = false, defaultValue = "10") @Min(1) Integer size) {
+
+        return request.isBlank() ? Collections.emptyList() : itemService.searchItem(userId, request, from, size);
     }
 
     @PostMapping("/{itemId}/comment")
     public CommentDto createComment(@Validated({Create.class}) @RequestBody CommentDto commentDto,
-                                 @RequestHeader(userIdFromHeader) Long userId,
+                                 @RequestHeader(USER_ID_FROM_HEADER) Long userId,
                                  @PathVariable Long itemId) {
 
-        return itemService.createComment(commentDto, userId, itemId);
+        return itemService.createComment(commentDto, userId, itemId, LocalDateTime.now());
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

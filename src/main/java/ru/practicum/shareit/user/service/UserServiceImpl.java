@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dao.UserStorage;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
@@ -17,17 +17,17 @@ import static ru.practicum.shareit.user.dto.UserMapper.toUserDto;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public UserDto create(UserDto userDto) {
-        return toUserDto(userStorage.save(toUser(userDto)));
+        return toUserDto(userRepository.save(toUser(userDto)));
     }
 
     @Override
     public UserDto getById(Long id) {
-        User user = userStorage.findById(id).orElseThrow(() -> {
+        User user = userRepository.findById(id).orElseThrow(() -> {
             throw new NotFoundException("User with id: " + id + " not found");
         });
         return toUserDto(user);
@@ -46,17 +46,17 @@ public class UserServiceImpl implements UserService {
         if (email != null && !email.isBlank()) {
             savedUser.setEmail(email);
         }
-        return toUserDto(userStorage.save(savedUser));
+        return toUserDto(userRepository.save(savedUser));
     }
 
     @Override
     @Transactional
     public void delete(Long id) {
-        userStorage.deleteById(id);
+        userRepository.deleteById(id);
     }
 
     @Override
     public List<UserDto> getAll() {
-        return toUserDto(userStorage.findAll());
+        return toUserDto(userRepository.findAll());
     }
 }

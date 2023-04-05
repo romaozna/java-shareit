@@ -11,52 +11,62 @@ import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.BadRequestException;
 
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/bookings")
+@Validated
 public class BookingController {
     private final BookingService bookingService;
-    private final String userIdFromHeader = "X-Sharer-User-Id";
+    public static final String USER_ID_FROM_HEADER = "X-Sharer-User-Id";
 
     @PostMapping
-    public BookingOutDto create(@RequestHeader(userIdFromHeader) Long userId,
+    public BookingOutDto create(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
                                 @Validated({Create.class}) @RequestBody BookingInDto bookingInDto) {
         return bookingService.create(userId, bookingInDto);
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingOutDto approveOrReject(@RequestHeader(userIdFromHeader) Long userId,
-                                                    @RequestParam("approved") Boolean approved,
-                                                    @PathVariable("bookingId") Long bookingId) {
+    public BookingOutDto approveOrReject(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
+                                                    @RequestParam Boolean approved,
+                                                    @PathVariable Long bookingId) {
         return bookingService.approveOrReject(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
-    public BookingOutDto getById(@RequestHeader(userIdFromHeader) Long userId,
-                                 @PathVariable("bookingId") Long bookingId) {
+    public BookingOutDto getById(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
+                                 @PathVariable Long bookingId) {
         return bookingService.getById(bookingId, userId);
     }
 
     @GetMapping
-    public List<BookingOutDto> getAll(@RequestHeader(userIdFromHeader) Long userId,
-                                      @RequestParam(name = "state", defaultValue = "ALL") String state) {
+    public List<BookingOutDto> getAll(
+            @RequestHeader(USER_ID_FROM_HEADER) Long userId,
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(required = false, defaultValue = "10") @Min(1) Integer size) {
+
         State bookingState = State.from(state);
         if (bookingState == null) {
             throw new BadRequestException("Unknown state: " + state);
         }
-        return bookingService.getAllByBooker(userId, bookingState);
+        return bookingService.getAllByBooker(userId, bookingState, from, size);
     }
 
     @GetMapping("/owner")
-    public List<BookingOutDto> getAllByOwner(@RequestHeader(userIdFromHeader) Long userId,
-                                             @RequestParam(name = "state", defaultValue = "ALL") String state) {
+    public List<BookingOutDto> getAllByOwner(
+            @RequestHeader(USER_ID_FROM_HEADER) Long userId,
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(required = false, defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(required = false, defaultValue = "10") @Min(1) Integer size) {
+
         State bookingState = State.from(state);
         if (bookingState == null) {
             throw new BadRequestException("Unknown state: " + state);
         }
-        return bookingService.getAllByOwner(userId, bookingState);
+        return bookingService.getAllByOwner(userId, bookingState, from, size);
     }
 }
