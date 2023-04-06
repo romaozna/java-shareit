@@ -22,7 +22,7 @@ public class ItemController {
     @GetMapping("{id}")
     public ResponseEntity<Object> getById(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
                            @PathVariable Long id) {
-        return itemClient.getById(userId, id);
+        return itemClient.getById(id, userId);
     }
 
     @GetMapping
