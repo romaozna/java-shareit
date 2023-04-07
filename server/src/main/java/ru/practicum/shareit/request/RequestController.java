@@ -11,8 +11,8 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/requests")
 public class RequestController {
-    private final RequestService requestService;
     public static final String USER_ID_FROM_HEADER = "X-Sharer-User-Id";
+    private final RequestService requestService;
 
     @PostMapping
     public ItemRequestDto create(@RequestHeader(USER_ID_FROM_HEADER) Long userId,

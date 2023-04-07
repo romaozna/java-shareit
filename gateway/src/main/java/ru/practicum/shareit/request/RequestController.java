@@ -14,8 +14,8 @@ import javax.validation.constraints.Min;
 @RequestMapping(path = "/requests")
 @Validated
 public class RequestController {
-    private final RequestClient requestClient;
     public static final String USER_ID_FROM_HEADER = "X-Sharer-User-Id";
+    private final RequestClient requestClient;
 
     @PostMapping
     public ResponseEntity<Object> create(@RequestHeader(USER_ID_FROM_HEADER) Long userId,

@@ -18,8 +18,8 @@ import javax.validation.constraints.Min;
 @RequestMapping(path = "/bookings")
 @Validated
 public class BookingController {
-    private final BookingClient bookingClient;
     public static final String USER_ID_FROM_HEADER = "X-Sharer-User-Id";
+    private final BookingClient bookingClient;
 
     @PostMapping
     public ResponseEntity<Object> create(@RequestHeader(USER_ID_FROM_HEADER) Long userId,
